@@ -1,4 +1,5 @@
 const { supabase } = require("../supabase");
+const Order = require('./orders');
 
 // Create new order
 async function createOrder(userId, ebookId) {

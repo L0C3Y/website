@@ -11,27 +11,27 @@
   --gradient: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  scroll-behavior: smooth;
-}
-
-.app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+body, html, #root {
   width: 100vw;
+  min-width: 0;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .nav {
+  width: 100vw;
+  min-width: 0;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -42,15 +42,11 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
 }
 
 .logo {
-  margin: 20px 10px;
-  font-weight: bold;
-  font-size: 20px; /* Larger font size */
+  font-weight: 900;
+  font-size: 2.2rem;
   color: var(--primary);
   text-decoration: none;
   letter-spacing: 2px;
@@ -69,7 +65,7 @@ body {
 
 .nav-links {
   display: flex;
-  gap: 2.5rem; /* Increase this value for more space */
+  gap: 2.5rem;
 }
 
 .nav-links a {
@@ -86,7 +82,7 @@ body {
   box-shadow: var(--shadow-hover);
 }
 
-.container {
+.container, .home-page, .upcoming-page, .ebooks-page, .feedback-page {
   width: 100vw;
   max-width: 100vw;
   margin: 0;
@@ -95,6 +91,7 @@ body {
   box-shadow: none;
   box-sizing: border-box;
   background: #fff;
+  text-align: center;
 }
 
 .footer {
@@ -130,10 +127,6 @@ body {
 
 /* Responsive Navigation */
 @media (max-width: 800px) {
-  .container {
-    max-width: 98vw;
-    padding: 1rem 0.5rem;
-  }
   .nav {
     flex-direction: column;
     align-items: flex-start;
@@ -145,6 +138,13 @@ body {
     margin-top: 0.5rem;
     width: 100%;
     flex-wrap: wrap;
+  }
+  .logo {
+    font-size: 1.5rem;
+    padding: 0.2em 0.5em;
+  }
+  .container, .home-page, .upcoming-page, .ebooks-page, .feedback-page {
+    padding: 1rem 0.5rem;
   }
 }
 

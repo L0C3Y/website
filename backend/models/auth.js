@@ -1,10 +1,7 @@
 // backend/models/auth.js
 const { createClient } = require("@supabase/supabase-js");
-
-// Supabase setup
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // secure server-side
-const supabase = createClient(supabaseUrl, supabaseKey);
+const { SUPABASE_URL, SUPABASE_SERVICE_ROLE } = require("../config");
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
 
 // Register new user
 async function register(email, password) {
@@ -13,7 +10,6 @@ async function register(email, password) {
     password,
     email_confirm: true,
   });
-
   if (error) throw error;
   return data.user;
 }
@@ -24,9 +20,8 @@ async function login(email, password) {
     email,
     password,
   });
-
   if (error) throw error;
-  return data.session; // contains access + refresh token
+  return data.session;
 }
 
 // Logout

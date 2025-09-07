@@ -1,44 +1,24 @@
-// backend/models/users.js
-const { createClient } = require("@supabase/supabase-js");
+// backend/models/User.js
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true, lowercase: true },
+  passwordHash: { type: String, required: true },
+  name: { type: String },
+  role: { type: String, enum: ["admin", "affiliate", "customer"], default: "customer" },
+  affiliateId: { type: mongoose.Schema.Types.ObjectId, ref: "Affiliate", default: null },
+  createdAt: { type: Date, default: Date.now },
+});
 
-// Create profile for new user
-async function createProfile(userId, { username, email }) {
-  const { data, error } = await supabase.from("profiles").insert([
-    {
-      id: userId,
-      username,
-      email,
-      role: "user"
-    }
-  ]);
-  if (error) throw error;
-  return data[0];
-}
+// virtual to set password
+userSchema.methods.setPassword = async function (plain) {
+  const salt = await bcrypt.genSalt(10);
+  this.passwordHash = await bcrypt.hash(plain, salt);
+};
 
-async function getProfile(userId) {
-  const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
-  if (error) throw error;
-  return data;
-}
+userSchema.methods.verifyPassword = async function (plain) {
+  return bcrypt.compare(plain, this.passwordHash);
+};
 
-async function updateProfile(userId, fields) {
-  const { data, error } = await supabase.from("profiles").update(fields).eq("id", userId).select().single();
-  if (error) throw error;
-  return data;
-}
-
-async function deleteProfile(userId) {
-  const { error } = await supabase.from("profiles").delete().eq("id", userId);
-  if (error) throw error;
-
-  const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-  if (authError) throw authError;
-
-  return true;
-}
-
-module.exports = { createProfile, getProfile, updateProfile, deleteProfile };
+module.exports = mongoose.model("User", userSchema);

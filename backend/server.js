@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -9,14 +10,16 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/media', express.static(path.join(__dirname, '../media')));
 
 // Routes
 app.use("/api/config", require("./routes/config"));
 app.use("/api/ebooks", require("./routes/ebooks"));
 app.use("/api/payments", require("./routes/payments"));
-app.use("/api/orders", require("./routes/orders"));
+const ordersRouter = require('./routes/orders');
+app.use("/api/orders", ordersRouter);
 app.use("/api/users", require("./routes/users"));
-app.use("/api/feedbacks", require("./routes/feedbacks"));
+app.use("/api/feedbacks", require("./routes/feedback"));
 app.use("/api/affiliates", require("./routes/affiliates"));
 
 // Health check
