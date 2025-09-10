@@ -1,19 +1,232 @@
-import React, { useState } from "react";
-import Carousel from "../component/Carousel";
+// =============================================================================
+// FRONTEND: Enhanced Ebooks Component with Production Config
+// =============================================================================
+
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import axios from "axios";
 import "../styles/app.css";
 
-const Ebooks = () => {
-  const [purchasedBooks, setPurchasedBooks] = useState(new Set());
+// Configuration Management
+const CONFIG = {
+  // Environment toggles
+  ENVIRONMENT: process.env.REACT_APP_ENVIRONMENT || 'development', // 'development' | 'production'
+  
+  // API Configuration
+  API: {
+    development: 'http://localhost:5000',
+    production: process.env.REACT_APP_API_URL || 'https://your-api.com'
+  },
+  
+  // Razorpay Configuration
+  RAZORPAY: {
+    keyId: process.env.REACT_APP_RAZORPAY_KEY_ID,
+    currency: 'INR',
+    companyName: 'Elite Knowledge Arsenal'
+  },
+  
+  // Feature Toggles
+  FEATURES: {
+    emailDelivery: process.env.REACT_APP_ENABLE_EMAIL !== 'false',
+    pdfGeneration: process.env.REACT_APP_ENABLE_PDF !== 'false',
+    paymentProcessing: process.env.REACT_APP_ENABLE_PAYMENT !== 'false',
+    analytics: process.env.REACT_APP_ENABLE_ANALYTICS !== 'false',
+    localStorage: process.env.REACT_APP_ENABLE_LOCALSTORAGE !== 'false'
+  }
+};
 
-  // 🔥 Premium Ebooks Collection - High-Value Digital Assets
-  const ebooks = [
+// Get current API URL
+const getApiUrl = () => CONFIG.API[CONFIG.ENVIRONMENT];
+
+// Enhanced Checkout Component with Razorpay Integration
+const EnhancedCheckout = ({ 
+  amount, 
+  bookData, 
+  customerInfo = {}, 
+  onSuccess, 
+  onError, 
+  onCancel 
+}) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
+
+  const createOrder = async () => {
+    const response = await axios.post(`${getApiUrl()}/api/payments/create-order`, {
+      amount: amount,
+      currency: CONFIG.RAZORPAY.currency,
+      bookId: bookData.id,
+      bookTitle: bookData.title,
+      customerInfo
+    });
+    return response.data;
+  };
+
+  const verifyAndFulfillOrder = async (paymentResponse) => {
+    const response = await axios.post(`${getApiUrl()}/api/payments/verify-and-fulfill`, {
+      razorpay_order_id: paymentResponse.razorpay_order_id,
+      razorpay_payment_id: paymentResponse.razorpay_payment_id,
+      razorpay_signature: paymentResponse.razorpay_signature,
+      bookId: bookData.id,
+      customerEmail: customerInfo.email || 'customer@example.com'
+    });
+    return response.data;
+  };
+
+  const handlePayment = async () => {
+    if (!window.Razorpay) {
+      setError('Payment system not loaded. Please refresh the page.');
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      setError(null);
+
+      // Create order
+      const orderData = await createOrder();
+
+      // Razorpay options
+      const options = {
+        key: CONFIG.RAZORPAY.keyId,
+        amount: orderData.order.amount,
+        currency: orderData.order.currency,
+        name: CONFIG.RAZORPAY.companyName,
+        description: `${bookData.title} - Digital Access`,
+        order_id: orderData.order.id,
+        prefill: {
+          name: customerInfo.name || '',
+          email: customerInfo.email || '',
+          contact: customerInfo.phone || ''
+        },
+        theme: {
+          color: '#8A2BE2'
+        },
+        handler: async (response) => {
+          try {
+            // Verify payment and fulfill order
+            const fulfillmentResult = await verifyAndFulfillOrder(response);
+            
+            if (fulfillmentResult.success) {
+              // Track successful purchase
+              if (CONFIG.FEATURES.analytics) {
+                trackPurchase(bookData, amount);
+              }
+              
+              onSuccess?.(fulfillmentResult);
+              
+              // Show success message
+              alert(`🎉 SUCCESS! \n\n✅ Payment confirmed\n✅ PDF sent to ${customerInfo.email}\n✅ Access granted\n\nCheck your email for download links!`);
+            }
+          } catch (error) {
+            console.error('Order fulfillment error:', error);
+            onError?.(error.response?.data?.message || 'Order processing failed');
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            onCancel?.('Payment cancelled by user');
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (error) {
+      console.error('Payment initiation error:', error);
+      setError(error.response?.data?.message || 'Failed to start payment');
+      onError?.(error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const trackPurchase = (book, amount) => {
+    // Google Analytics or other tracking
+    if (window.gtag) {
+      window.gtag('event', 'purchase', {
+        transaction_id: `book_${book.id}_${Date.now()}`,
+        value: amount,
+        currency: 'INR',
+        items: [{
+          item_id: book.id,
+          item_name: book.title,
+          category: book.category,
+          quantity: 1,
+          price: amount
+        }]
+      });
+    }
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR'
+    }).format(price);
+  };
+
+  return (
+    <div className="enhanced-checkout">
+      <button
+        onClick={handlePayment}
+        disabled={isProcessing || !CONFIG.RAZORPAY.keyId}
+        className={`premium-btn checkout-btn ${isProcessing ? 'processing' : ''}`}
+      >
+        {isProcessing ? (
+          <>
+            <span className="spinner">⏳</span>
+            Processing...
+          </>
+        ) : (
+          `🚀 Secure Checkout ${formatPrice(amount)}`
+        )}
+      </button>
+      
+      {error && (
+        <div className="error-message" role="alert">
+          <span>⚠️</span> {error}
+        </div>
+      )}
+      
+      <div className="checkout-features">
+        <div className="feature">✅ Instant PDF Delivery</div>
+        <div className="feature">✅ Secure Payment</div>
+        <div className="feature">✅ 30-Day Guarantee</div>
+      </div>
+    </div>
+  );
+};
+
+// Main Ebooks Component
+const Ebooks = () => {
+  const [purchasedBooks, setPurchasedBooks] = useState(() => {
+    if (!CONFIG.FEATURES.localStorage) return new Set();
+    
+    try {
+      const stored = localStorage.getItem('purchased_ebooks');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  const [customerInfo, setCustomerInfo] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  });
+
+  const [showCustomerForm, setShowCustomerForm] = useState(null);
+
+  // Ebooks data
+  const ebooks = useMemo(() => [
     {
       id: 1,
       title: "The Elite Mind Forge",
       description: "Transform your consciousness with battle-tested strategies used by Fortune 500 CEOs and military leaders.",
       cover: "/covers/elite-mind.jpg",
-      price: "$297",
-      originalPrice: "$497",
+      price: 297,
+      originalPrice: 497,
       pages: 384,
       rating: 4.9,
       category: "Executive Psychology",
@@ -22,15 +235,16 @@ const Ebooks = () => {
       bonus: "Includes 3-hour audio masterclass + 30-day action plan",
       testimonial: "This changed my entire approach to leadership. ROI: 10x in first quarter.",
       level: "MASTERMIND",
-      exclusivity: "Limited to 500 copies"
+      exclusivity: "Limited to 500 copies",
+      pdfFile: "elite-mind-forge.pdf"
     },
     {
       id: 2,
       title: "Digital Empire Blueprint",
       description: "The complete system for building 7-figure online businesses from zero to empire status.",
       cover: "/covers/digital-empire.jpg",
-      price: "$497",
-      originalPrice: "$997",
+      price: 497,
+      originalPrice: 997,
       pages: 456,
       rating: 4.8,
       category: "Business Strategy",
@@ -39,15 +253,16 @@ const Ebooks = () => {
       bonus: "Private community access + Weekly Q&A calls for 6 months",
       testimonial: "Generated $250K in first 90 days following this system.",
       level: "ELITE",
-      exclusivity: "VIP Access Only"
+      exclusivity: "VIP Access Only",
+      pdfFile: "digital-empire-blueprint.pdf"
     },
     {
       id: 3,
       title: "Influence Mastery Protocol",
       description: "Advanced persuasion psychology and influence tactics for modern leaders and entrepreneurs.",
       cover: "/covers/influence-mastery.jpg",
-      price: "$397",
-      originalPrice: "$697",
+      price: 397,
+      originalPrice: 697,
       pages: 342,
       rating: 4.9,
       category: "Influence Psychology",
@@ -56,72 +271,56 @@ const Ebooks = () => {
       bonus: "25 influence scripts + Video training series",
       testimonial: "Closed 3 major deals in first week using these techniques.",
       level: "PROFESSIONAL",
-      exclusivity: "Professional Edition"
-    },
-    {
-      id: 4,
-      title: "Wealth Consciousness Code",
-      description: "Reprogram your money mindset and unlock the millionaire's mental operating system.",
-      cover: "/covers/wealth-code.jpg",
-      price: "$247",
-      originalPrice: "$447",
-      pages: 298,
-      rating: 4.7,
-      category: "Wealth Psychology",
-      author: "Victoria Gold",
-      preview: "The hidden beliefs that keep 99% of people broke and how to rewire them...",
-      bonus: "21-day wealth meditation series + Money affirmation deck",
-      testimonial: "Doubled my income within 6 months of applying these principles.",
-      level: "PREMIUM",
-      exclusivity: "First Edition"
-    },
-    {
-      id: 5,
-      title: "Peak Performance Arsenal",
-      description: "The ultimate collection of biohacking, productivity, and performance optimization strategies.",
-      cover: "/covers/peak-performance.jpg",
-      price: "$347",
-      originalPrice: "$597",
-      pages: 412,
-      rating: 4.8,
-      category: "Performance Optimization",
-      author: "Commander Phoenix",
-      preview: "Military-grade performance protocols for civilian elite achievement...",
-      bonus: "Performance tracking app + Personalized optimization plan",
-      testimonial: "Increased productivity 300% while working half the hours.",
-      level: "TACTICAL",
-      exclusivity: "Tactical Edition"
-    },
-    {
-      id: 6,
-      title: "Networking Kingdom Secrets",
-      description: "Build powerful connections and create an unstoppable network of influence and opportunity.",
-      cover: "/covers/networking-kingdom.jpg",
-      price: "$197",
-      originalPrice: "$397",
-      pages: 267,
-      rating: 4.6,
-      category: "Relationship Capital",
-      author: "Alexander Network",
-      preview: "The insider's guide to building relationships with industry titans...",
-      bonus: "Contact management system + 50 conversation starters",
-      testimonial: "Connected with 5 billionaires using these exact strategies.",
-      level: "STRATEGIC",
-      exclusivity: "Insider Access"
+      exclusivity: "Professional Edition",
+      pdfFile: "influence-mastery-protocol.pdf"
     }
-  ];
+  ], []);
 
-  const handlePurchase = (bookId) => {
-    setPurchasedBooks(prev => new Set([...prev, bookId]));
+  // Persist purchases to localStorage
+  useEffect(() => {
+    if (CONFIG.FEATURES.localStorage) {
+      try {
+        localStorage.setItem('purchased_ebooks', JSON.stringify([...purchasedBooks]));
+      } catch (error) {
+        console.warn('Failed to save purchases:', error);
+      }
+    }
+  }, [purchasedBooks]);
+
+  const handlePurchaseClick = useCallback((book) => {
+    if (purchasedBooks.has(book.id)) return;
     
-    const book = ebooks.find(b => b.id === bookId);
-    console.log(`Processing premium purchase: ${book.title} for ${book.price}`);
+    setShowCustomerForm(book);
+  }, [purchasedBooks]);
+
+  const handlePurchaseSuccess = useCallback((book, fulfillmentResult) => {
+    setPurchasedBooks(prev => new Set([...prev, book.id]));
+    setShowCustomerForm(null);
     
-    // Premium purchase simulation
-    alert(`🏆 PREMIUM ACCESS GRANTED!\n\n"${book.title}" added to your Elite Library.\n\nCheck your email for:\n✅ Instant download link\n✅ Bonus materials\n✅ Exclusive access codes\n\nWelcome to the inner circle! 🔥`);
+    // Optional: Show detailed success info
+    if (fulfillmentResult.downloadUrl) {
+      console.log('Download URL:', fulfillmentResult.downloadUrl);
+    }
+  }, []);
+
+  const handleCustomerSubmit = useCallback((e) => {
+    e.preventDefault();
+    
+    if (!customerInfo.email) {
+      alert('Email is required for PDF delivery');
+      return;
+    }
+    
+    // Proceed with purchase
+    setShowCustomerForm(prev => ({ ...prev, showCheckout: true }));
+  }, [customerInfo]);
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR'
+    }).format(price);
   };
-
-  const featuredBook = ebooks[0]; // Premium featured book
 
   const getLevelBadgeColor = (level) => {
     const colors = {
@@ -135,8 +334,19 @@ const Ebooks = () => {
     return colors[level] || 'linear-gradient(45deg, #666, #333)';
   };
 
+  const featuredBook = ebooks[0];
+
   return (
     <div className="ebooks-page premium-collection">
+      {/* Environment Info (dev only) */}
+      {CONFIG.ENVIRONMENT === 'development' && (
+        <div className="dev-info">
+          <strong>Environment:</strong> {CONFIG.ENVIRONMENT} | 
+          <strong> API:</strong> {getApiUrl()} |
+          <strong> Features:</strong> {Object.entries(CONFIG.FEATURES).filter(([,v]) => v).map(([k]) => k).join(', ')}
+        </div>
+      )}
+
       {/* Premium Page Header */}
       <div className="page-header premium-header">
         <div className="premium-badge">🏆 PREMIUM COLLECTION</div>
@@ -162,7 +372,7 @@ const Ebooks = () => {
         </div>
       </div>
 
-      {/* Premium Featured Book Section */}
+      {/* Featured Book Section */}
       <div className="featured-section premium-featured">
         <div className="section-header">
           <h2 className="section-title">🔥 FLAGSHIP MASTERPIECE</h2>
@@ -224,9 +434,9 @@ const Ebooks = () => {
             
             <div className="premium-pricing">
               <div className="price-container">
-                <span className="original-price">{featuredBook.originalPrice}</span>
-                <span className="current-price">{featuredBook.price}</span>
-                <span className="savings">Save ${parseInt(featuredBook.originalPrice.slice(1)) - parseInt(featuredBook.price.slice(1))}</span>
+                <span className="original-price">{formatPrice(featuredBook.originalPrice)}</span>
+                <span className="current-price">{formatPrice(featuredBook.price)}</span>
+                <span className="savings">Save {formatPrice(featuredBook.originalPrice - featuredBook.price)}</span>
               </div>
               <div className="urgency-text">⚡ Limited Time: 40% OFF</div>
             </div>
@@ -234,7 +444,7 @@ const Ebooks = () => {
             <div className="premium-actions">
               <button 
                 className="premium-btn flagship-btn"
-                onClick={() => handlePurchase(featuredBook.id)}
+                onClick={() => handlePurchaseClick(featuredBook)}
                 disabled={purchasedBooks.has(featuredBook.id)}
               >
                 {purchasedBooks.has(featuredBook.id) ? 
@@ -250,84 +460,176 @@ const Ebooks = () => {
         </div>
       </div>
 
-      {/* Premium Collection Carousel */}
-      <div className="carousel-section premium-carousel-section">
+      {/* Ebooks Grid */}
+      <div className="ebooks-grid premium-grid">
         <div className="section-header">
           <h2 className="section-title">👑 COMPLETE ELITE COLLECTION</h2>
-          <p className="section-subtitle">Transform every area of your life with these premium resources</p>
+          <p className="section-subtitle">Transform every area of your life</p>
         </div>
-        <Carousel 
-          ebooks={ebooks} 
-          onPurchase={handlePurchase}
-          purchasedBooks={purchasedBooks}
-          isPremium={true}
-        />
-      </div>
-
-      {/* Premium Categories */}
-      <div className="categories-section premium-categories">
-        <h2 className="section-title">🎯 ELITE SPECIALIZATIONS</h2>
-        <div className="premium-category-grid">
-          {[...new Set(ebooks.map(book => book.category))].map((category, index) => (
-            <div key={category} className="premium-category-card">
-              <div className="category-icon">
-                {['🧠', '💼', '🎯', '💰', '⚡', '🤝'][index] || '🔥'}
+        
+        <div className="books-grid">
+          {ebooks.slice(1).map((book) => (
+            <div key={book.id} className="book-card premium-book-card">
+              <div className="book-cover">
+                <img 
+                  src={book.cover} 
+                  alt={book.title}
+                  onError={(e) => {
+                    e.target.src = '/covers/placeholder-premium.jpg';
+                  }}
+                />
+                <div className="level-badge" style={{background: getLevelBadgeColor(book.level)}}>
+                  {book.level}
+                </div>
               </div>
-              <h3>{category}</h3>
-              <p>Master the elite strategies</p>
+              
+              <div className="book-info">
+                <h3 className="book-title">{book.title}</h3>
+                <p className="book-author">by {book.author}</p>
+                <p className="book-description">{book.description}</p>
+                
+                <div className="book-stats">
+                  <span>⭐ {book.rating}</span>
+                  <span>📖 {book.pages}p</span>
+                  <span>🎯 {book.category}</span>
+                </div>
+                
+                <div className="pricing">
+                  <span className="original-price">{formatPrice(book.originalPrice)}</span>
+                  <span className="current-price">{formatPrice(book.price)}</span>
+                </div>
+                
+                <button 
+                  className="premium-btn book-btn"
+                  onClick={() => handlePurchaseClick(book)}
+                  disabled={purchasedBooks.has(book.id)}
+                >
+                  {purchasedBooks.has(book.id) ? 
+                    '✅ OWNED' : 
+                    '🛒 GET ACCESS'
+                  }
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Premium Stats & Social Proof */}
-      <div className="social-proof-section">
-        <h2 className="section-title">🏆 JOIN THE ELITE</h2>
-        <div className="proof-grid">
-          <div className="proof-card">
-            <div className="proof-number">{ebooks.length}</div>
-            <div className="proof-label">Premium Masterpieces</div>
-          </div>
-          <div className="proof-card">
-            <div className="proof-number">{purchasedBooks.size}</div>
-            <div className="proof-label">In Your Arsenal</div>
-          </div>
-          <div className="proof-card">
-            <div className="proof-number">50M+</div>
-            <div className="proof-label">Revenue Generated</div>
-          </div>
-          <div className="proof-card">
-            <div className="proof-number">99.2%</div>
-            <div className="proof-label">Success Rate</div>
+      {/* Customer Info Modal */}
+      {showCustomerForm && !showCustomerForm.showCheckout && (
+        <div className="modal-overlay">
+          <div className="modal-content customer-form-modal">
+            <div className="modal-header">
+              <h3>📧 Delivery Information</h3>
+              <button 
+                className="close-btn"
+                onClick={() => setShowCustomerForm(null)}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="selected-book-info">
+              <h4>{showCustomerForm.title}</h4>
+              <p>Price: {formatPrice(showCustomerForm.price)}</p>
+            </div>
+            
+            <form onSubmit={handleCustomerSubmit}>
+              <div className="form-group">
+                <label>Full Name</label>
+                <input
+                  type="text"
+                  value={customerInfo.name}
+                  onChange={(e) => setCustomerInfo(prev => ({...prev, name: e.target.value}))}
+                  placeholder="Enter your full name"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Email Address *</label>
+                <input
+                  type="email"
+                  value={customerInfo.email}
+                  onChange={(e) => setCustomerInfo(prev => ({...prev, email: e.target.value}))}
+                  placeholder="your@email.com"
+                  required
+                />
+                <small>PDF will be delivered to this email</small>
+              </div>
+              
+              <div className="form-group">
+                <label>Phone Number</label>
+                <input
+                  type="tel"
+                  value={customerInfo.phone}
+                  onChange={(e) => setCustomerInfo(prev => ({...prev, phone: e.target.value}))}
+                  placeholder="+91 9876543210"
+                />
+              </div>
+              
+              <div className="form-actions">
+                <button type="button" onClick={() => setShowCustomerForm(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="premium-btn">
+                 Continue to Payment
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Exclusive Access Section */}
-      <div className="exclusive-access-section">
-        <div className="access-container">
-          <h2>🔐 EXCLUSIVE MEMBER BENEFITS</h2>
-          <div className="benefits-grid">
-            <div className="benefit-item">
-              <span className="benefit-icon">⚡</span>
-              <h4>Instant Access</h4>
-              <p>Download immediately after purchase</p>
+      {/* Checkout Modal */}
+      {showCustomerForm?.showCheckout && (
+        <div className="modal-overlay">
+          <div className="modal-content checkout-modal">
+            <div className="modal-header">
+              <h3>🔒 Secure Checkout</h3>
+              <button 
+                className="close-btn"
+                onClick={() => setShowCustomerForm(null)}
+              >
+                ×
+              </button>
             </div>
-            <div className="benefit-item">
-              <span className="benefit-icon">🎁</span>
-              <h4>Premium Bonuses</h4>
-              <p>Exclusive content worth $500+</p>
+            
+            <div className="checkout-summary">
+              <h4>{showCustomerForm.title}</h4>
+              <p>Customer: {customerInfo.name}</p>
+              <p>Email: {customerInfo.email}</p>
+              <p className="total">Total: {formatPrice(showCustomerForm.price)}</p>
             </div>
-            <div className="benefit-item">
-              <span className="benefit-icon">👥</span>
-              <h4>Elite Community</h4>
-              <p>Connect with high achievers</p>
+            
+            <EnhancedCheckout
+              amount={showCustomerForm.price}
+              bookData={showCustomerForm}
+              customerInfo={customerInfo}
+              onSuccess={(result) => handlePurchaseSuccess(showCustomerForm, result)}
+              onError={(error) => console.error('Payment error:', error)}
+              onCancel={() => setShowCustomerForm(null)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Stats Section */}
+      <div className="stats-section">
+        <h2 className="section-title">📊 YOUR PROGRESS</h2>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-number">{purchasedBooks.size}</div>
+            <div className="stat-label">Books Owned</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">{ebooks.length}</div>
+            <div className="stat-label">Total Available</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">
+              {Math.round((purchasedBooks.size / ebooks.length) * 100)}%
             </div>
-            <div className="benefit-item">
-              <span className="benefit-icon">🔄</span>
-              <h4>Lifetime Updates</h4>
-              <p>Always get the latest versions</p>
-            </div>
+            <div className="stat-label">Collection Complete</div>
           </div>
         </div>
       </div>
