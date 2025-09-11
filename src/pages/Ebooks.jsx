@@ -222,9 +222,9 @@ const Ebooks = () => {
   const ebooks = useMemo(() => [
     {
       id: 1,
-      title: "The Elite Mind Forge",
-      description: "Transform your consciousness with battle-tested strategies used by Fortune 500 CEOs and military leaders.",
-      cover: "/covers/elite-mind.jpg",
+      title: "Life of a Dot",
+      description: "Sequence of Consequences.",
+      cover: "../../media/red.png",
       price: 297,
       originalPrice: 497,
       pages: 384,
