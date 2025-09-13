@@ -13,6 +13,18 @@ async function createOrder(userId, ebookId, affiliateCode, amount, currency = "I
   return data;
 }
 
+// Get all orders for a user
+async function getOrdersByUser(userId) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
 // Update order status
 async function updateOrderStatus(orderId, status, paymentData = {}) {
   const { data, error } = await supabase

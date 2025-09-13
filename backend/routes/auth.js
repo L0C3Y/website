@@ -1,51 +1,44 @@
-// backend/routes/auth.js
+//backend/routes/auth.js
+
 const express = require("express");
 const router = express.Router();
 const Auth = require("../models/auth");
 const Users = require("../models/users");
+const { asyncHandler, validate, body } = require("./middleware");
 
-// Register user + auto profile
-router.post("/register", async (req, res) => {
-  try {
+// Register
+router.post("/register",
+  validate([
+    body("email").isEmail(),
+    body("password").isLength({ min: 6 }),
+    body("username").notEmpty()
+  ]),
+  asyncHandler(async (req, res) => {
     const { email, password, username } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, error: "Missing fields" });
-    }
-
-    // 1. Create user in Supabase auth
     const user = await Auth.registerUser(email, password);
-
-    // 2. Create linked profile in custom table
     await Users.createProfile(user.id, { username, email });
-
     res.json({ success: true, data: user });
-  } catch (err) {
-    console.error("Auth register error:", err.message);
-    res.status(500).json({ success: false, error: "Registration failed" });
-  }
-});
+  })
+);
 
 // Login
-router.post("/login", async (req, res) => {
-  try {
+router.post("/login",
+  validate([
+    body("email").isEmail(),
+    body("password").notEmpty()
+  ]),
+  asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const token = await Auth.loginUser(email, password);
     res.json({ success: true, data: token });
-  } catch (err) {
-    console.error("Auth login error:", err.message);
-    res.status(401).json({ success: false, error: "Invalid credentials" });
-  }
-});
+  })
+);
 
 // Logout
-router.post("/logout", async (req, res) => {
-  try {
-    await Auth.logoutUser();
-    res.json({ success: true, message: "Logged out" });
-  } catch (err) {
-    console.error("Auth logout error:", err.message);
-    res.status(500).json({ success: false, error: "Logout failed" });
-  }
-});
+router.post("/logout", asyncHandler(async (req, res) => {
+  await Auth.logoutUser();
+  res.json({ success: true, message: "Logged out" });
+}));
 
 module.exports = router;
+

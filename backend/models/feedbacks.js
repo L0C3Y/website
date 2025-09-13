@@ -1,39 +1,27 @@
-const mongoose = require("mongoose");
+const { supabase } = require("../supabase");
 
-const feedbackSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  ebookId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Ebook",
-    required: false, // allow feedback not tied to ebook
-  },
-  message: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  rating: {
-    type: Number,
-    min: 1,
-    max: 5,
-    default: 5,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+// Add feedback
+async function addFeedback(userId, ebookId, message, rating = 5) {
+  const { data, error } = await supabase
+    .from("feedback")
+    .insert([{ user_id: userId, ebook_id: ebookId, message, rating }])
+    .select()
+    .single();
 
-// Add static methods for your routes
-feedbackSchema.statics.addFeedback = function(userId, ebookId, message) {
-  return this.create({ userId, ebookId, message });
-};
-feedbackSchema.statics.getFeedbackByEbook = function(ebookId) {
-  return this.find({ ebookId }).sort({ createdAt: -1 });
-};
+  if (error) throw error;
+  return data;
+}
 
-module.exports = mongoose.model("Feedback", feedbackSchema);
+// Get feedback by ebook
+async function getFeedbackByEbook(ebookId) {
+  const { data, error } = await supabase
+    .from("feedback")
+    .select("*, users(name, email)")
+    .eq("ebook_id", ebookId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+module.exports = { addFeedback, getFeedbackByEbook };

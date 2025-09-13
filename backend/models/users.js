@@ -1,24 +1,37 @@
-// backend/models/User.js
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
+const { supabase } = require("../supabase");
 
-const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true, lowercase: true },
-  passwordHash: { type: String, required: true },
-  name: { type: String },
-  role: { type: String, enum: ["admin", "affiliate", "customer"], default: "customer" },
-  affiliateId: { type: mongoose.Schema.Types.ObjectId, ref: "Affiliate", default: null },
-  createdAt: { type: Date, default: Date.now },
-});
+// Create new user (with role)
+async function createUser(email, password, role = "customer", affiliateCode = null) {
+  // Register in Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+  if (authError) throw authError;
 
-// virtual to set password
-userSchema.methods.setPassword = async function (plain) {
-  const salt = await bcrypt.genSalt(10);
-  this.passwordHash = await bcrypt.hash(plain, salt);
-};
+  const userId = authData.user.id;
 
-userSchema.methods.verifyPassword = async function (plain) {
-  return bcrypt.compare(plain, this.passwordHash);
-};
+  // Insert into public.users table
+  const { data, error } = await supabase
+    .from("users")
+    .insert([{ id: userId, email, role, affiliate_code: affiliateCode }])
+    .select()
+    .single();
 
-module.exports = mongoose.model("User", userSchema);
+  if (error) throw error;
+  return data;
+}
+
+// Get user by ID
+async function getUser(id) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+module.exports = { createUser, getUser };

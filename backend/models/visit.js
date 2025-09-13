@@ -1,17 +1,15 @@
-// backend/models/Visit.js
-const mongoose = require("mongoose");
+const { supabase } = require("../supabase");
 
-const visitSchema = new mongoose.Schema({
-  affiliateId: { type: mongoose.Schema.Types.ObjectId, ref: "Affiliate" },
-  code: { type: String }, // affiliate code for quick queries
-  ip: String,
-  userAgent: String,
-  referrer: String,
-  landingPath: String,
-  name: String,
-  email: String,
-  phone: String,
-  createdAt: { type: Date, default: Date.now },
-});
+// Record a visit
+async function recordVisit(affiliateCode, ip, userAgent, referrer, landingPath) {
+  const { data, error } = await supabase
+    .from("visits")
+    .insert([{ affiliate_code: affiliateCode, ip, user_agent: userAgent, referrer, landing_path: landingPath }])
+    .select()
+    .single();
 
-module.exports = mongoose.model("Visit", visitSchema);
+  if (error) throw error;
+  return data;
+}
+
+module.exports = { recordVisit };
