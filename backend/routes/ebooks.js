@@ -3,7 +3,7 @@
 const express = require("express");
 const router = express.Router();
 const Ebooks = require("../models/ebooks");
-const { asyncHandler, authMiddleware, validate, body, param } = require("./middleware");
+const { asyncHandler, authMiddleware, validate, body, param } = require("../middleware");
 
 // GET all ebooks (paginated)
 router.get("/", asyncHandler(async (req, res) => {

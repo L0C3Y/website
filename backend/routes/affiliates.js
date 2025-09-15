@@ -3,7 +3,7 @@
 const express = require("express");
 const router = express.Router();
 const Affiliates = require("../models/affiliates");
-const { asyncHandler, authMiddleware, validate, body, param } = require("./middleware");
+const { asyncHandler, authMiddleware, validate, body, param } = require("../middleware");
 
 // Register affiliate
 router.post("/register",

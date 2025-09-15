@@ -3,7 +3,7 @@
 const express = require("express");
 const router = express.Router();
 const Feedbacks = require("../models/feedbacks");
-const { asyncHandler, authMiddleware, validate, body, param } = require("./middleware");
+const { asyncHandler, authMiddleware, validate, body, param } = require("../middleware");
 
 // POST feedback
 router.post("/",

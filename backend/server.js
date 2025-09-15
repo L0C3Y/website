@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ path: "../.env" }); // load from parent folder
 const express = require("express");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");

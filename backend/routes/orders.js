@@ -3,7 +3,7 @@ const router = express.Router();
 const Orders = require("../models/orders");
 const razorpay = require("../utils/razorpay");
 const crypto = require("crypto");
-const { asyncHandler, authMiddleware, validate, body } = require("./middleware");
+const { asyncHandler, authMiddleware, validate, body } = require("../middleware");
 
 // Create order
 router.post(

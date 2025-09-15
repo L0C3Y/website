@@ -1,13 +1,15 @@
+// src/pages/Ebooks.jsx
 import React from "react";
-import EnhancedCheckout from "../component/EnhancedCheckout";
+import EnhancedCheckout from "../component/EnhancedCheckout.jsx";
 
-const eBook = () => {
+const Ebooks = () => {
   return (
-    <div>
+    <div style={{ padding: "2rem" }}>
       <h1>Buy eBook</h1>
-      <EnhancedCheckout amount={199} />
+      <p>Price: ₹199</p>
+      <EnhancedCheckout amount={199} ebookId="ebook001" />
     </div>
   );
 };
 
-export default eBook;
+export default Ebooks;

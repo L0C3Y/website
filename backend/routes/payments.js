@@ -1,260 +1,102 @@
+// backend/routes/payment.js
 const express = require("express");
 const router = express.Router();
-const Razorpay = require("razorpay");
+const Orders = require("../models/orders");
+const Affiliates = require("../models/affiliates");
+const Transaction = require("../models/Transaction");
+const razorpay = require("../utils/razorpay");
 const crypto = require("crypto");
-const mongoose = require("mongoose");
-const Transaction = require("../models/transaction");
+const { asyncHandler, authMiddleware, validate, body } = require("./middleware");
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Create Razorpay order and save in DB
+router.post(
+  "/create-order",
+  authMiddleware,
+  validate([
+    body("userId").notEmpty(),
+    body("ebookId").notEmpty(),
+    body("amount").isFloat({ min: 1 }),
+    body("affiliateCode").optional(),
+  ]),
+  asyncHandler(async (req, res) => {
+    const { userId, ebookId, amount, affiliateCode } = req.body;
 
-/**
- * @route   POST /api/payments/create-order
- * @desc    Create Razorpay Order and store pending transaction
- * @access  Public
- */
-router.post("/create-order", async (req, res) => {
-  try {
-    const {
-      amount,
-      currency = "INR",
-      userName,
-      userEmail,
-      code,
-      affiliateId,
-      metadata = {},
-    } = req.body;
-
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: "Valid amount is required" });
-    }
-
-    const options = {
-      amount: amount * 100,
-      currency,
-      receipt: `receipt_${Date.now()}`,
-    };
-
-    const order = await razorpay.orders.create(options);
-
-    const txn = new Transaction({
-      affiliateId: affiliateId || null,
-      code: code || null,
-      userName,
-      userEmail,
-      amount,
-      currency,
-      razorpay_order_id: order.id,
-      status: "pending",
-      metadata,
+    // 1️⃣ Create Razorpay order
+    const razorpayOrder = await razorpay.orders.create({
+      amount: amount * 100, // paise
+      currency: "INR",
+      receipt: `ebook_${ebookId}_${Date.now()}`,
     });
 
-    await txn.save();
+    // 2️⃣ Save order in DB
+    const dbOrder = await Orders.createOrder(userId, ebookId, affiliateCode || null, amount);
 
+    // 3️⃣ Return both Razorpay order and DB order
     res.json({
       success: true,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      transactionId: txn._id,
+      razorpayOrder,
+      dbOrder,
     });
-  } catch (err) {
-    console.error("❌ Create Order Error:", err);
-    res.status(500).json({ error: "Failed to create order" });
-  }
-});
+  })
+);
 
-/**
- * @route   POST /api/payments/verify
- * @desc    Verify Razorpay Payment and update transaction
- * @access  Public
- */
-router.post("/verify", async (req, res) => {
-  try {
-    const {
+// Verify payment
+router.post(
+  "/verify",
+  authMiddleware,
+  validate([
+    body("razorpay_order_id").notEmpty(),
+    body("razorpay_payment_id").notEmpty(),
+    body("razorpay_signature").notEmpty(),
+    body("orderId").notEmpty(),
+  ]),
+  asyncHandler(async (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+
+    // 1️⃣ Verify signature
+    const digest = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest("hex");
+
+    if (digest !== razorpay_signature) {
+      return res.status(400).json({ success: false, error: "Payment verification failed" });
+    }
+
+    // 2️⃣ Update order status in DB
+    const updatedOrder = await Orders.updateOrderStatus(orderId, "completed", {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      transactionId,
-    } = req.body;
-
-    if (
-      !razorpay_order_id ||
-      !razorpay_payment_id ||
-      !razorpay_signature ||
-      !transactionId
-    ) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    const sign = razorpay_order_id + "|" + razorpay_payment_id;
-    const expectedSign = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(sign)
-      .digest("hex");
-
-    const isValid = expectedSign === razorpay_signature;
-
-    const txn = await Transaction.findById(transactionId);
-    if (!txn) {
-      return res.status(404).json({ error: "Transaction not found" });
-    }
-
-    txn.razorpay_payment_id = razorpay_payment_id;
-    txn.razorpay_signature = razorpay_signature;
-    txn.status = isValid ? "completed" : "failed";
-    await txn.save();
-
-    if (isValid) {
-      return res.json({
-        success: true,
-        message: "Payment verified successfully",
-        transactionId: txn._id,
-      });
-    } else {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid signature",
-        transactionId: txn._id,
-      });
-    }
-  } catch (err) {
-    console.error("❌ Verify Payment Error:", err);
-    res.status(500).json({ error: "Payment verification failed" });
-  }
-});
-
-/**
- * @route   POST /api/payments/refund
- * @desc    Initiate a refund for a completed transaction
- * @access  Admin
- */
-router.post("/refund", async (req, res) => {
-  try {
-    const { transactionId } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(transactionId)) {
-      return res.status(400).json({ error: "Invalid transaction ID" });
-    }
-
-    const txn = await Transaction.findById(transactionId);
-    if (!txn || txn.status !== "completed") {
-      return res.status(404).json({ error: "Refundable transaction not found" });
-    }
-
-    const refund = await razorpay.payments.refund(txn.razorpay_payment_id, {
-      amount: txn.amount * 100,
     });
 
-    txn.status = "refunded";
-    txn.metadata.refund = refund;
-    await txn.save();
+    // 3️⃣ Handle affiliate commission if exists
+    if (updatedOrder.affiliate_code) {
+      const affiliateData = await Affiliates.getAffiliateStats(updatedOrder.affiliate_code);
+      const commissionRate = affiliateData?.commission_rate || 0.2;
+      const commissionAmount = updatedOrder.amount * commissionRate;
 
-    res.json({ success: true, message: "Refund initiated", refund });
-  } catch (err) {
-    console.error("❌ Refund Error:", err);
-    res.status(500).json({ error: "Refund failed" });
-  }
-});
-
-/**
- * @route   POST /api/payments/webhook
- * @desc    Razorpay Webhook Listener
- * @access  Public
- */
-router.post("/webhook", express.raw({ type: "application/json" }), async (req, res) => {
-  try {
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    const signature = req.headers["x-razorpay-signature"];
-    const expectedSignature = crypto
-      .createHmac("sha256", webhookSecret)
-      .update(req.body)
-      .digest("hex");
-
-    if (signature !== expectedSignature) {
-      console.warn("⚠ Invalid webhook signature");
-      return res.status(400).json({ error: "Invalid webhook signature" });
+      await Transaction.create({
+        affiliateId: affiliateData.id,
+        code: updatedOrder.affiliate_code,
+        userName: req.user.name,
+        userEmail: req.user.email,
+        amount: commissionAmount,
+        currency: updatedOrder.currency,
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        status: "completed",
+      });
     }
 
-    const event = JSON.parse(req.body);
+    res.json({ success: true, data: updatedOrder });
+  })
+);
 
-    if (event.event === "payment.captured") {
-      const payment = event.payload.payment.entity;
-
-      await Transaction.findOneAndUpdate(
-        { razorpay_payment_id: payment.id },
-        { status: "completed" }
-      );
-
-      console.log(`✅ Webhook: Payment ${payment.id} marked as completed`);
-    }
-
-    res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("❌ Webhook Error:", err);
-    res.status(500).json({ error: "Webhook processing failed" });
-  }
-});
-
-/**
- * @route   GET /api/payments/:id
- * @desc    Get transaction by ID
- * @access  Public
- */
-router.get("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ error: "Invalid transaction ID" });
-    }
-
-    const txn = await Transaction.findById(id);
-    if (!txn) {
-      return res.status(404).json({ error: "Transaction not found" });
-    }
-
-    res.json(txn);
-  } catch (err) {
-    console.error("❌ Fetch Transaction Error:", err);
-    res.status(500).json({ error: "Failed to fetch transaction" });
-  }
-});
-
-/**
- * @route   GET /api/payments
- * @desc    List transactions with pagination and filters
- * @access  Admin
- */
-router.get("/", async (req, res) => {
-  try {
-    const { page = 1, limit = 50, status, email } = req.query;
-    const query = {};
-
-    if (status) query.status = status;
-    if (email) query.userEmail = email;
-
-    const txns = await Transaction.find(query)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
-
-    const total = await Transaction.countDocuments(query);
-
-    res.json({
-      success: true,
-      page: parseInt(page),
-      limit: parseInt(limit),
-      total,
-      transactions: txns,
-    });
-  } catch (err) {
-    console.error("❌ List Transactions Error:", err);
-    res.status(500).json({ error: "Failed to list transactions" });
-  }
+// Get Razorpay key
+router.get("/key", (req, res) => {
+  res.json({ key: process.env.RAZORPAY_KEY_ID });
 });
 
 module.exports = router;
