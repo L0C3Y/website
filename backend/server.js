@@ -1,48 +1,52 @@
 require("dotenv").config();
 const express = require("express");
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
 const cors = require("cors");
-const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Middleware
-app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use('/media', express.static(path.join(__dirname, '../media')));
+app.use(cors());
 
-// Route Imports (Make sure each of these files exports a router)
-const configRoutes = require("./routes/config");
-const ebookRoutes = require("./routes/ebooks");
-const paymentRoutes = require("./routes/payments");
-const ordersRouter = require("./routes/orders");
-const userRoutes = require("./routes/users");
-const feedbackRoutes = require("./routes/feedback");
-const affiliateRoutes = require("./routes/affiliates");
-
-
-// Route Usage
-app.use("/api/config", configRoutes);
-app.use("/api/ebooks", ebookRoutes);
-app.use("/api/payments", paymentRoutes);
-app.use("/api/orders", ordersRouter);
-app.use("/api/users", userRoutes);
-app.use("/api/feedbacks", feedbackRoutes);
-app.use("/api/affiliates", affiliateRoutes);
-
-// Health Check
-app.get("/", (req, res) => {
-  res.json({ message: "Snowstorm backend is alive" });
+// Razorpay instance
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({ error: "Internal Server Error" });
+// Send public key to frontend
+app.get("/api/payments/key", (req, res) => {
+  res.json({ key: process.env.RAZORPAY_KEY_ID });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`⚡ Server running at http://localhost:${PORT}`);
+// Create order
+app.post("/api/payments/create-order", async (req, res) => {
+  const { amount } = req.body; // amount in INR
+  try {
+    const order = await razorpay.orders.create({
+      amount: amount * 100, // convert to paise
+      currency: "INR",
+    });
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: "Order creation failed" });
+  }
 });
+
+// Verify payment
+app.post("/api/payments/verify", (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+  const body = razorpay_order_id + "|" + razorpay_payment_id;
+  const expectedSignature = crypto
+    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    .update(body.toString())
+    .digest("hex");
+
+  if (expectedSignature === razorpay_signature) {
+    res.json({ status: "success" });
+  } else {
+    res.status(400).json({ status: "failed" });
+  }
+});
+
+app.listen(5000, () => console.log("Server running on port 5000"));

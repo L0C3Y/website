@@ -1,77 +1,50 @@
-// frontend/components/EnhancedCheckout.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
-const EnhancedCheckout = ({ amount, bookData, customerInfo, onSuccess, onError, onCancel }) => {
-  const handleCheckout = async () => {
+const EnhancedCheckout = ({ amount }) => {
+  const [key, setKey] = useState("");
+
+  // Fetch public key from backend
+  useEffect(() => {
+    const fetchKey = async () => {
+      const { data } = await axios.get("http://localhost:5000/api/payments/key");
+      setKey(data.key);
+    };
+    fetchKey();
+  }, []);
+
+  const handlePayment = async () => {
     try {
-      // 1. Create Razorpay order
-      const res = await fetch("/api/payments/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount,
-          currency: "INR",
-          name: customerInfo.name,
-          email: customerInfo.email,
-        }),
-      });
+      // Create order
+      const { data } = await axios.post("http://localhost:5000/api/payments/create-order", { amount });
 
-      const order = await res.json();
-      if (!order.success) throw new Error(order.error || "Order creation failed");
-
-      // 2. Open Razorpay widget
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // from .env
-        amount: order.amount,
-        currency: order.currency,
-        name: "Snowstorm Store",
-        description: bookData?.title || "eBook Purchase",
-        order_id: order.id,
+        key: key,
+        amount: data.amount,
+        currency: data.currency,
+        name: "Your Website",
+        description: "Purchase",
+        order_id: data.id,
         handler: async function (response) {
-          try {
-            // 3. Verify payment
-            const verifyRes = await fetch("/api/payments/verify-and-fulfill", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                orderId: order.id,
-                paymentId: response.razorpay_payment_id,
-                signature: response.razorpay_signature,
-                bookId: bookData?._id,
-                customer: customerInfo,
-              }),
-            });
-
-            const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-              onSuccess?.(verifyData);
-            } else {
-              onError?.(verifyData.error || "Verification failed");
-            }
-          } catch (err) {
-            onError?.(err.message);
-          }
+          // Verify payment
+          await axios.post("http://localhost:5000/api/payments/verify", {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          });
+          alert("Payment Successful!");
         },
-        prefill: {
-          name: customerInfo.name,
-          email: customerInfo.email,
-        },
-        theme: { color: "#3399cc" },
-        modal: { ondismiss: () => onCancel?.() },
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
-      onError?.(err.message);
+      console.error(err);
+      alert("Payment Failed");
     }
   };
 
-  return (
-    <button className="checkout-btn" onClick={handleCheckout}>
-      Pay ₹{amount / 100} Securely
-    </button>
-  );
+  return <button onClick={handlePayment} disabled={!key}>Pay {amount} INR</button>;
 };
 
 export default EnhancedCheckout;
