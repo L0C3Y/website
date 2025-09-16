@@ -1,40 +1,20 @@
-//backend/routes/users.js
-
+// backend/routes/users.js
 const express = require("express");
 const router = express.Router();
-const Users = require("../models/users");
-const { asyncHandler, authMiddleware, validate, param } = require("./middleware");
+const { authMiddleware } = require("./middleware");
+const { supabase } = require("../supabase");
 
-// GET profile
-router.get("/:id",
-  authMiddleware,
-  validate([param("id").notEmpty()]),
-  asyncHandler(async (req, res) => {
-    const user = await Users.getProfile(req.params.id);
-    if (!user) return res.status(404).json({ success: false, error: "User not found" });
-    res.json({ success: true, data: user });
-  })
-);
+// 🔹 Get Profile
+router.get("/me", authMiddleware, async (req, res) => {
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, name, email")
+    .eq("id", req.user.id)
+    .single();
 
-// UPDATE profile
-router.put("/:id",
-  authMiddleware,
-  validate([param("id").notEmpty()]),
-  asyncHandler(async (req, res) => {
-    const user = await Users.updateProfile(req.params.id, req.body);
-    res.json({ success: true, data: user });
-  })
-);
+  if (error) return res.status(400).json({ success: false, error: error.message });
 
-// DELETE profile
-router.delete("/:id",
-  authMiddleware,
-  validate([param("id").notEmpty()]),
-  asyncHandler(async (req, res) => {
-    await Users.deleteProfile(req.params.id);
-    res.json({ success: true, message: "User deleted" });
-  })
-);
+  res.json({ success: true, user: data });
+});
 
 module.exports = router;
-

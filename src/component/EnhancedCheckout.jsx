@@ -1,106 +1,73 @@
-// src/component/EnhancedCheckout.jsx
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 
-const EnhancedCheckout = ({ amount, ebookId }) => {
-  const [key, setKey] = useState("");
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-
-  // Get current user from JWT in localStorage
-  const [currentUser, setCurrentUser] = useState(null);
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return alert("User not logged in");
-
-    try {
-      const base64Url = token.split(".")[1];
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-      const decodedPayload = JSON.parse(atob(base64));
-      setCurrentUser(decodedPayload);
-    } catch (err) {
-      console.error("Invalid token:", err);
-    }
-  }, []);
-
-  // Load Razorpay checkout script
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => setScriptLoaded(true);
-    script.onerror = () => console.error("Razorpay script failed to load");
-    document.body.appendChild(script);
-  }, []);
-
-  // Fetch Razorpay key
-  useEffect(() => {
-    const fetchKey = async () => {
-      try {
-        const { data } = await axios.get("http://localhost:5000/api/payments/key");
-        setKey(data.key);
-      } catch (err) {
-        console.error("Error fetching key:", err);
-      }
-    };
-    fetchKey();
-  }, []);
+const EnhancedCheckout = ({ amount, ebookId, affiliateCode }) => {
+  const [loading, setLoading] = useState(false);
 
   const handlePayment = async () => {
-    if (!scriptLoaded) return alert("Payment system not ready");
-    if (!currentUser) return alert("User not logged in");
+    setLoading(true);
 
     try {
-      const affiliateCode = localStorage.getItem("affiliateCode") || null;
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login first!");
+        setLoading(false);
+        return;
+      }
 
-      console.log("Creating order...");
-      const { data } = await axios.post(
-        "http://localhost:5000/api/payments/create-order",
-        {
-          amount,
-          userId: currentUser.id,
-          ebookId,
-          affiliateCode,
+      // 1️⃣ Get Razorpay public key from backend
+      const keyRes = await fetch("http://localhost:5000/api/payments/key");
+      const { key } = await keyRes.json();
+      if (!key) throw new Error("Razorpay key not found");
+
+      // 2️⃣ Create Razorpay order via backend
+      const orderRes = await fetch("http://localhost:5000/api/payments/create-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+        body: JSON.stringify({ ebookId, amount, affiliateCode }),
+      });
+      const orderData = await orderRes.json();
+      if (!orderData.success) throw new Error(orderData.error || "Failed to create order");
 
-      console.log("Order created:", data);
+      const { razorpayOrder } = orderData;
 
+      // 3️⃣ Razorpay options
       const options = {
         key,
-        amount: data.razorpayOrder.amount,
-        currency: data.razorpayOrder.currency,
-        name: "Your Website",
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        name: "eBook Store",
         description: "Purchase eBook",
-        order_id: data.razorpayOrder.id,
-        handler: async function (response) {
-          console.log("Payment response:", response);
-
+        order_id: razorpayOrder.id,
+        handler: async (response) => {
           try {
-            const verifyRes = await axios.post(
-              "http://localhost:5000/api/payments/verify",
-              {
+            // 4️⃣ Verify payment with backend
+            const verifyRes = await fetch("http://localhost:5000/api/payments/verify", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                orderId: data.dbOrder.id,
-              },
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              }
-            );
+              }),
+            });
 
-            console.log("Payment verified:", verifyRes.data);
-            alert("Payment Successful!");
+            const verifyData = await verifyRes.json();
+            alert(verifyData.success ? "✅ Payment successful!" : "❌ Payment verification failed!");
           } catch (err) {
-            console.error("Payment verification failed:", err.response?.data || err);
-            alert("Payment verification failed");
+            console.error("Verification error:", err);
+            alert("❌ Payment verification failed!");
           }
+        },
+        prefill: {
+          name: JSON.parse(localStorage.getItem("user"))?.name || "User",
+          email: JSON.parse(localStorage.getItem("user"))?.email || "test@example.com",
+          contact: "9999999999",
         },
         theme: { color: "#3399cc" },
       };
@@ -108,14 +75,16 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
-      console.error("Payment creation failed:", err.response?.data || err);
-      alert("Payment Failed");
+      console.error("Payment error:", err);
+      alert("❌ Something went wrong while processing payment!");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <button onClick={handlePayment} disabled={!key || !scriptLoaded}>
-      Pay ₹{amount}
+    <button onClick={handlePayment} disabled={loading}>
+      {loading ? "Processing..." : `Pay ₹${amount}`}
     </button>
   );
 };

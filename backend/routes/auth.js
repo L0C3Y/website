@@ -1,11 +1,11 @@
+// backend/routes/auth.js
 const express = require("express");
 const router = express.Router();
-const jwt = require("jsonwebtoken");
-const { asyncHandler, body, validate } = require("./middleware");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const { supabase } = require("../supabase");
+const { asyncHandler, body, validate } = require("./middleware");
 
-// Register user
 router.post(
   "/register",
   validate([
@@ -15,6 +15,17 @@ router.post(
   ]),
   asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
+
+    // check if already exists
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (existingUser)
+      return res.status(400).json({ success: false, error: "Email already registered" });
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const { data, error } = await supabase
@@ -25,31 +36,11 @@ router.post(
 
     if (error) return res.status(400).json({ success: false, error: error.message });
 
-    const token = jwt.sign({ id: data.id, name: data.name, email: data.email }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
-    res.json({ success: true, user: data, token });
-  })
-);
-
-// Login user
-router.post(
-  "/login",
-  validate([body("email").isEmail(), body("password").notEmpty()]),
-  asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", email)
-      .single();
-
-    if (error || !data) return res.status(400).json({ success: false, error: "Invalid email or password" });
-
-    const isMatch = await bcrypt.compare(password, data.password);
-    if (!isMatch) return res.status(400).json({ success: false, error: "Invalid email or password" });
-
-    const token = jwt.sign({ id: data.id, name: data.name, email: data.email }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign(
+      { id: data.id, name: data.name, email: data.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     res.json({ success: true, user: data, token });
   })
