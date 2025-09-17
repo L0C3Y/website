@@ -14,26 +14,31 @@ const EnhancedCheckout = ({ amount, ebookId, affiliateCode }) => {
         return;
       }
 
-      // 1️⃣ Get Razorpay public key from backend
+      // 1️⃣ Get Razorpay key from backend
       const keyRes = await fetch("http://localhost:5000/api/payments/key");
       const { key } = await keyRes.json();
-      if (!key) throw new Error("Razorpay key not found");
 
-      // 2️⃣ Create Razorpay order via backend
+      // 2️⃣ Create order via backend
       const orderRes = await fetch("http://localhost:5000/api/payments/create-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ ebookId, amount, affiliateCode }),
+        body: JSON.stringify({
+          userId: JSON.parse(atob(token.split(".")[1])).id, // decode JWT
+          ebookId,
+          amount,
+          affiliateCode,
+        }),
       });
+
       const orderData = await orderRes.json();
       if (!orderData.success) throw new Error(orderData.error || "Failed to create order");
 
-      const { razorpayOrder } = orderData;
+      const { razorpayOrder, dbOrder } = orderData;
 
-      // 3️⃣ Razorpay options
+      // 3️⃣ Razorpay checkout
       const options = {
         key,
         amount: razorpayOrder.amount,
@@ -43,7 +48,6 @@ const EnhancedCheckout = ({ amount, ebookId, affiliateCode }) => {
         order_id: razorpayOrder.id,
         handler: async (response) => {
           try {
-            // 4️⃣ Verify payment with backend
             const verifyRes = await fetch("http://localhost:5000/api/payments/verify", {
               method: "POST",
               headers: {
@@ -54,6 +58,7 @@ const EnhancedCheckout = ({ amount, ebookId, affiliateCode }) => {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
+                orderId: dbOrder.id, // pass DB order ID for affiliate tracking
               }),
             });
 

@@ -1,11 +1,17 @@
 const { supabase } = require("../supabase");
-const Order = require('./orders');
+const { sendAffiliateEmail } = require("../utils/email");
 
-// Create new order
-async function createOrder(userId, ebookId, affiliateCode, amount, currency = "INR") {
+async function createOrder(userId, ebookId, amount, affiliateCode = null, currency = "INR") {
   const { data, error } = await supabase
     .from("orders")
-    .insert([{ user_id: userId, ebook_id: ebookId, affiliate_code: affiliateCode, amount, currency }])
+    .insert([{
+      user_id: userId,
+      ebook_id: ebookId,
+      amount,
+      currency,
+      affiliate_code: affiliateCode,
+      status: "pending"
+    }])
     .select()
     .single();
 
@@ -13,11 +19,10 @@ async function createOrder(userId, ebookId, affiliateCode, amount, currency = "I
   return data;
 }
 
-// Get all orders for a user
 async function getOrdersByUser(userId) {
   const { data, error } = await supabase
     .from("orders")
-    .select("*")
+    .select("*, ebooks(*)")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -25,7 +30,6 @@ async function getOrdersByUser(userId) {
   return data;
 }
 
-// Update order status
 async function updateOrderStatus(orderId, status, paymentData = {}) {
   const { data, error } = await supabase
     .from("orders")
@@ -38,18 +42,6 @@ async function updateOrderStatus(orderId, status, paymentData = {}) {
     .eq("id", orderId)
     .select()
     .single();
-
-  if (error) throw error;
-  return data;
-}
-
-// Get orders by user
-async function getOrdersByUser(userId) {
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*, ebooks(*)")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
 
   if (error) throw error;
   return data;

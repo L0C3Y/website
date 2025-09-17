@@ -1,4 +1,3 @@
-// backend/models/Transaction.js
 const mongoose = require("mongoose");
 
 const txnSchema = new mongoose.Schema({

@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 const crypto = require("crypto");
 const razorpay = require("../utils/razorpay");
-const { supabase } = require("../supabase"); // service role client
+const { supabase } = require("../supabase");
 const { asyncHandler, authMiddleware, validate, body } = require("./middleware");
+const { sendAffiliateEmail } = require("../utils/email"); // NEW
 
 // Helper to parse amount
 const parseAmount = (amount) => {
@@ -12,7 +13,7 @@ const parseAmount = (amount) => {
   return num;
 };
 
-// 🔹 Create Razorpay Order
+// 🔹 Create Razorpay Order (existing code, unchanged except adding user_name)
 router.post(
   "/create-order",
   authMiddleware,
@@ -25,13 +26,12 @@ router.post(
     const { ebookId, amount, affiliateCode } = req.body;
     const userId = req.user?.id;
     const userEmail = req.user?.email;
+    const userName = req.user?.name || "User"; // NEW
 
     if (!userId || !userEmail) return res.status(401).json({ success: false, error: "Unauthorized" });
 
     try {
       const amountNum = parseAmount(amount);
-
-      console.log("Creating order for user:", userId, "Amount:", amountNum, "Ebook:", ebookId);
 
       // 1️⃣ Create Razorpay order
       const razorpayOrder = await razorpay.orders.create({
@@ -39,37 +39,33 @@ router.post(
         currency: "INR",
         receipt: `ebook_${ebookId}_${Date.now()}`,
       });
-      console.log("Razorpay order created:", razorpayOrder);
 
-      // 2️⃣ Save order to Supabase
+      // 2️⃣ Save order to Supabase with user_name
       const { data: order, error } = await supabase
         .from("orders")
         .insert([{
           user_id: userId,
+          user_name: userName, // NEW
+          user_email: userEmail,
           ebook_id: ebookId,
           amount: amountNum,
           status: "pending",
           razorpay_order_id: razorpayOrder.id,
           affiliate_code: affiliateCode || null,
-          user_email: userEmail,
         }])
         .select()
         .single();
 
-      if (error) {
-        console.error("❌ Supabase insert error:", error);
-        return res.status(500).json({ success: false, error: error.message });
-      }
+      if (error) return res.status(500).json({ success: false, error: error.message });
 
       res.json({ success: true, razorpayOrder, order });
     } catch (err) {
-      console.error("❌ Create order error:", err);
       res.status(500).json({ success: false, error: err.message });
     }
   })
 );
 
-// 🔹 Verify Razorpay Payment
+// 🔹 Verify Razorpay Payment (enhanced)
 router.post(
   "/verify",
   authMiddleware,
@@ -101,6 +97,8 @@ router.post(
 
       if (updateError) return res.status(500).json({ success: false, error: updateError.message });
 
+      let transactionInfo = null;
+
       // Handle affiliate commission
       if (updatedOrder.affiliate_code) {
         const { data: affiliate } = await supabase
@@ -110,25 +108,45 @@ router.post(
           .maybeSingle();
 
         if (affiliate) {
-          const commissionAmount = updatedOrder.amount * (affiliate.commission_rate || 0.2);
+          // Prevent duplicate transaction
+          const { data: existingTxn } = await supabase
+            .from("transactions")
+            .select("*")
+            .eq("razorpay_order_id", razorpay_order_id)
+            .maybeSingle();
 
-          await supabase.from("transactions").insert([{
-            affiliate_id: affiliate.id,
-            code: updatedOrder.affiliate_code,
-            user_email: updatedOrder.user_email,
-            amount: commissionAmount,
-            currency: "INR",
-            razorpay_order_id,
-            razorpay_payment_id,
-            razorpay_signature,
-            status: "completed",
-          }]);
+          if (!existingTxn) {
+            const commissionAmount = updatedOrder.amount * (affiliate.commission_rate || 0.2);
+
+            const { data: txn } = await supabase.from("transactions").insert([{
+              affiliate_id: affiliate.id,
+              code: updatedOrder.affiliate_code,
+              user_email: updatedOrder.user_email,
+              user_name: updatedOrder.user_name, // NEW
+              amount: commissionAmount,
+              currency: "INR",
+              razorpay_order_id,
+              razorpay_payment_id,
+              razorpay_signature,
+              status: "completed",
+            }]).select().single();
+
+            transactionInfo = txn;
+
+            // Send email to affiliate
+            await sendAffiliateEmail(
+              affiliate.email,
+              affiliate.name,
+              updatedOrder.user_name,
+              commissionAmount,
+              new Date().toISOString()
+            );
+          }
         }
       }
 
-      res.json({ success: true, data: updatedOrder });
+      res.json({ success: true, data: updatedOrder, transaction: transactionInfo });
     } catch (err) {
-      console.error("❌ Verify payment error:", err);
       res.status(500).json({ success: false, error: err.message });
     }
   })
