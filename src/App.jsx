@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState, createContext } from "react";
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from "react-router-dom";
 
-// Pages (you said these exist)
+// Pages
 import Home from "./pages/Home";
 import Ebooks from "./pages/Ebooks";
 import Upcoming from "./pages/Upcoming";
@@ -12,13 +12,13 @@ import Feedback from "./pages/Feedback";
 import AffiliateDashboard from "./component/AffiliateDashboard";
 import "./App.css";
 
-// ---- Affiliate Context (available to whole app) ----
+// ---- Affiliate Context ----
 export const AffiliateContext = createContext({
   code: null,
   setCode: () => {},
 });
 
-// ---- Helper: reads ?aff= from URL and persists it ----
+// ---- Helper: reads ?aff= from URL ----
 const AffiliateTracker = ({ children }) => {
   const location = useLocation();
   const [code, setCode] = useState(() => localStorage.getItem("aff_code") || null);
@@ -36,7 +36,7 @@ const AffiliateTracker = ({ children }) => {
   return <AffiliateContext.Provider value={value}>{children}</AffiliateContext.Provider>;
 };
 
-// ---- Basic Navbar / Footer (minimal, “dirty” ok) ----
+// ---- Navbar / Footer ----
 const Navbar = () => (
   <nav className="nav">
     <Link to="/" className="logo">Snowstorm</Link>
@@ -55,24 +55,39 @@ const Footer = () => (
   </footer>
 );
 
-// ---- App Shell: fetches data once and routes pages ----
+// ---- App ----
 export default function App() {
   const [ebooks, setEbooks] = useState([]);
   const [upcoming, setUpcoming] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
+  const BACKEND_URL = "https://backend-gfho.onrender.com/api";
+
   useEffect(() => {
     setLoading(true);
     setErr("");
-    // MOCK DATA
-    setEbooks([
-      { id: 1, title: "Sample Ebook", author: "Author", description: "A great ebook." }
-    ]);
-    setUpcoming([
-      { id: 2, title: "Upcoming Ebook", author: "Author", description: "Coming soon!" }
-    ]);
-    setLoading(false);
+
+    const fetchData = async () => {
+      try {
+        // Fetch ebooks
+        const ebooksRes = await fetch(`${BACKEND_URL}/ebooks`);
+        const ebooksData = await ebooksRes.json();
+        setEbooks(ebooksData || []);
+
+        // Fetch upcoming ebooks
+        const upcomingRes = await fetch(`${BACKEND_URL}/upcoming`);
+        const upcomingData = await upcomingRes.json();
+        setUpcoming(upcomingData || []);
+      } catch (error) {
+        console.error(error);
+        setErr("Failed to fetch data from server.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
@@ -95,7 +110,6 @@ export default function App() {
               <Route path="/upcoming" element={<Upcoming upcoming={upcoming} />} />
               <Route path="/feedback" element={<Feedback />} />
               <Route path="/affiliates" element={<AffiliateDashboard />} />
-              {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
