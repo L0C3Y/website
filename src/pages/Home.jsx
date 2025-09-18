@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/app.css";
 
@@ -11,8 +11,17 @@ const Home = () => {
     name: "",
     email: "",
     phone: "",
-    password: "default123" // 🔑 optional default password if you don’t want user input
+    password: "default123",
   });
+
+  // ✅ Auto-detect if already registered (localStorage)
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+    if (token && user) {
+      setRegistered(true); // skip form
+    }
+  }, []);
 
   const validateForm = (data) => {
     const newErrors = {};
@@ -40,10 +49,9 @@ const Home = () => {
       name: formData.name.trim(),
       email: formData.email.trim(),
       phone: formData.phone.trim(),
-      password: formData.password // send to backend
+      password: formData.password,
     };
 
-    // ✅ Validation
     const validationErrors = validateForm(data);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -52,7 +60,6 @@ const Home = () => {
     }
 
     try {
-      // 🔥 Real API call
       const response = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -62,14 +69,9 @@ const Home = () => {
       const result = await response.json();
 
       if (result.success) {
-        // ✅ Save token + user
         localStorage.setItem("token", result.token);
         localStorage.setItem("user", JSON.stringify(result.user));
-
         setRegistered(true);
-
-        // redirect to eBooks directly if you want
-        // navigate("/ebooks");
       } else {
         setErrors({ general: result.error || "Registration failed" });
       }
@@ -84,19 +86,19 @@ const Home = () => {
   const navigationButtons = [
     { text: "View eBooks", path: "/ebooks" },
     { text: "Upcoming Titles", path: "/upcoming" },
-    { text: "Give Feedback", path: "/feedback" }
+    { text: "Give Feedback", path: "/feedback" },
   ];
 
   return (
     <div className="home-page">
-      {/* Hero section */}
       <div className="hero-video-bg">
         <video autoPlay loop muted playsInline className="hero-bg-video" src="/media/bgv.mp4" />
         <div className="hero-overlay">
           <h1 className="hero">Welcome to Snowstorm Shop</h1>
           <p>Claim your free PDF and explore powerful eBooks.</p>
 
-          {!registered && (
+          {/* ✅ If registered, skip form */}
+          {!registered ? (
             <form onSubmit={handleRegister} className="register-form" noValidate>
               {errors.general && <div className="general-error">{errors.general}</div>}
 
@@ -129,28 +131,28 @@ const Home = () => {
               />
               {errors.phone && <div className="error-message">{errors.phone}</div>}
 
-              <button type="submit" className="hero-btn" disabled={loading}>
-                {loading ? "Processing..." : "Get Free PDF"}
-              </button>
+              {/* ✅ Always visible + scrollable */}
+              <div className="form-submit-wrapper">
+                <button type="submit" className="hero-btn" disabled={loading}>
+                  {loading ? "Processing..." : "Get Free PDF"}
+                </button>
+              </div>
             </form>
+          ) : (
+            <section className="thank-you">
+              <h2>⚔️ Welcome, Warrior!</h2>
+              <p>Your free PDF is on its way! Explore our collection:</p>
+              <div className="nav-links">
+                {navigationButtons.map((btn, idx) => (
+                  <button key={idx} onClick={() => navigate(btn.path)} className="hero-btn">
+                    {btn.text}
+                  </button>
+                ))}
+              </div>
+            </section>
           )}
         </div>
       </div>
-
-      {/* Thank you after registration */}
-      {registered && (
-        <section className="thank-you">
-          <h2>⚔️ Welcome, Warrior!</h2>
-          <p>Your free PDF is on its way! Explore our collection:</p>
-          <div className="nav-links">
-            {navigationButtons.map((btn, idx) => (
-              <button key={idx} onClick={() => navigate(btn.path)} className="hero-btn">
-                {btn.text}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 };

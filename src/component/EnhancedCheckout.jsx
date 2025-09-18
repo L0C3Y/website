@@ -1,11 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const EnhancedCheckout = ({ amount, ebookId, affiliateCode }) => {
+const EnhancedCheckout = ({ amount, ebookId, affiliateCode: propAffiliateCode }) => {
   const [loading, setLoading] = useState(false);
+  const [affiliateCode, setAffiliateCode] = useState(propAffiliateCode || null);
+
+  // Auto-detect affiliate code from URL
+  useEffect(() => {
+    if (!propAffiliateCode) {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("ref") || null;
+      if (code) setAffiliateCode(code);
+    }
+  }, [propAffiliateCode]);
 
   const handlePayment = async () => {
     setLoading(true);
-
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -14,11 +23,12 @@ const EnhancedCheckout = ({ amount, ebookId, affiliateCode }) => {
         return;
       }
 
-      // 1️⃣ Get Razorpay key from backend
+      // 1️⃣ Get Razorpay key
       const keyRes = await fetch("http://localhost:5000/api/payments/key");
-      const { key } = await keyRes.json();
+      const keyData = await keyRes.json();
+      if (!keyData.key) throw new Error("Razorpay key not found");
 
-      // 2️⃣ Create order via backend
+      // 2️⃣ Create order
       const orderRes = await fetch("http://localhost:5000/api/payments/create-order", {
         method: "POST",
         headers: {
@@ -26,7 +36,6 @@ const EnhancedCheckout = ({ amount, ebookId, affiliateCode }) => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId: JSON.parse(atob(token.split(".")[1])).id, // decode JWT
           ebookId,
           amount,
           affiliateCode,
@@ -36,11 +45,16 @@ const EnhancedCheckout = ({ amount, ebookId, affiliateCode }) => {
       const orderData = await orderRes.json();
       if (!orderData.success) throw new Error(orderData.error || "Failed to create order");
 
-      const { razorpayOrder, dbOrder } = orderData;
+      const { razorpayOrder, order } = orderData;
+      if (!razorpayOrder) throw new Error("Razorpay order creation failed");
 
       // 3️⃣ Razorpay checkout
+      if (!window.Razorpay) {
+        throw new Error("Razorpay script not loaded. Add https://checkout.razorpay.com/v1/checkout.js in index.html");
+      }
+
       const options = {
-        key,
+        key: keyData.key,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
         name: "eBook Store",
@@ -58,15 +72,20 @@ const EnhancedCheckout = ({ amount, ebookId, affiliateCode }) => {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                orderId: dbOrder.id, // pass DB order ID for affiliate tracking
+                orderId: order.id,
               }),
             });
 
             const verifyData = await verifyRes.json();
-            alert(verifyData.success ? "✅ Payment successful!" : "❌ Payment verification failed!");
+            if (!verifyData.success) {
+              console.error("Backend verification error:", verifyData.error);
+              alert("❌ Payment verification failed: " + verifyData.error);
+            } else {
+              alert("✅ Payment successful!");
+            }
           } catch (err) {
-            console.error("Verification error:", err);
-            alert("❌ Payment verification failed!");
+            console.error("Verification fetch error:", err);
+            alert("❌ Payment verification failed: " + err.message);
           }
         },
         prefill: {
@@ -81,7 +100,7 @@ const EnhancedCheckout = ({ amount, ebookId, affiliateCode }) => {
       rzp.open();
     } catch (err) {
       console.error("Payment error:", err);
-      alert("❌ Something went wrong while processing payment!");
+      alert("❌ Payment failed: " + err.message); // ✅ show real error
     } finally {
       setLoading(false);
     }
