@@ -1,10 +1,15 @@
+// server.js ya index.js
+
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
+// Routes
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const paymentRoutes = require("./routes/payments");
+const ebookRoutes = require("./routes/ebooks");
+const affiliateRoutes = require("./routes/affiliates"); // ✅ Import affiliates
 
 const app = express();
 
@@ -12,10 +17,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// Mount routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/ebooks", ebookRoutes);
+app.use("/api/affiliates", affiliateRoutes); // ✅ Mount affiliates
 
 // Root test route
 app.get("/", (req, res) => {

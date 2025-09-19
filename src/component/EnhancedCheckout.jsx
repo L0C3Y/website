@@ -1,17 +1,9 @@
-import { useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
+import { AffiliateContext } from "../App"; // ✅ Use the context
 
-const EnhancedCheckout = ({ amount, ebookId, affiliateCode: propAffiliateCode }) => {
+const EnhancedCheckout = ({ amount, ebookId }) => {
+  const { code: affiliateCode } = useContext(AffiliateContext); // get global affiliate code
   const [loading, setLoading] = useState(false);
-  const [affiliateCode, setAffiliateCode] = useState(propAffiliateCode || null);
-
-  // Auto-detect affiliate code from URL
-  useEffect(() => {
-    if (!propAffiliateCode) {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("ref") || null;
-      if (code) setAffiliateCode(code);
-    }
-  }, [propAffiliateCode]);
 
   const handlePayment = async () => {
     setLoading(true);
@@ -38,7 +30,7 @@ const EnhancedCheckout = ({ amount, ebookId, affiliateCode: propAffiliateCode })
         body: JSON.stringify({
           ebookId,
           amount,
-          affiliateCode,
+          affiliateCode, // automatically uses context
         }),
       });
 
@@ -50,7 +42,9 @@ const EnhancedCheckout = ({ amount, ebookId, affiliateCode: propAffiliateCode })
 
       // 3️⃣ Razorpay checkout
       if (!window.Razorpay) {
-        throw new Error("Razorpay script not loaded. Add https://checkout.razorpay.com/v1/checkout.js in index.html");
+        throw new Error(
+          "Razorpay script not loaded. Add https://checkout.razorpay.com/v1/checkout.js in index.html"
+        );
       }
 
       const options = {
@@ -100,7 +94,7 @@ const EnhancedCheckout = ({ amount, ebookId, affiliateCode: propAffiliateCode })
       rzp.open();
     } catch (err) {
       console.error("Payment error:", err);
-      alert("❌ Payment failed: " + err.message); // ✅ show real error
+      alert("❌ Payment failed: " + err.message);
     } finally {
       setLoading(false);
     }

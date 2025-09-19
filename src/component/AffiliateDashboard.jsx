@@ -1,173 +1,348 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import "../styles/cards.css";
 
 const AffiliateDashboard = () => {
-  const [affiliate, setAffiliate] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: "", email: "", commissionRate: 0.2 });
+  const [user, setUser] = useState(null); // { role, id, name, email }
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const [allAffiliates, setAllAffiliates] = useState([]);
+  const [affiliateData, setAffiliateData] = useState(null);
+
+  const [loginForm, setLoginForm] = useState({
+    role: "admin",
+    identifier: "",
+    password: "",
+    email: "",
+  });
+
+  const [affiliateForm, setAffiliateForm] = useState({
+    name: "",
+    email: "",
+    commissionRate: 0.2,
+  });
   const [editMode, setEditMode] = useState(false);
 
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const location = useLocation();
+  // ------------------------
+  // Login Handler
+  // ------------------------
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-  // 1️⃣ Detect affiliate from URL
-  const detectAffiliate = async () => {
-    const path = location.pathname.split("/")[1]; // e.g., snowstrom.shop/karan123
     try {
-      const res = await fetch(`/api/affiliates/detect/${path}`);
-      const data = await res.json();
-      if (data.success) localStorage.setItem("affiliateCode", data.data.code);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+      let url = "";
+      let body = {};
 
-  const fetchAffiliateDashboard = async () => {
-    if (!user || !user.id) return setLoading(false);
-    try {
-      const res = await fetch(`/api/affiliates/${user.affiliate_id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      if (loginForm.role === "admin") {
+        url = "/api/affiliates/admin-login";
+        body = { username: loginForm.identifier, password: loginForm.password };
+      } else if (loginForm.role === "affiliate") {
+        url = "/api/affiliates/affiliate-login";
+        body = { email: loginForm.email };
+      }
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
+
       const data = await res.json();
-      if (data.success) setAffiliate(data.data);
+      if (!data.success) throw new Error(data.error || "Login failed");
+
+      setUser(data.user);
+      setToken(data.token);
+      fetchDashboard(data.user, data.token);
     } catch (err) {
       console.error(err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    detectAffiliate();
-    fetchAffiliateDashboard();
-  }, []);
+  // ------------------------
+  // Fetch dashboard data
+  // ------------------------
+  const fetchDashboard = async (loggedUser = user, authToken = token) => {
+    if (!loggedUser || !authToken) return;
 
-  // 2️⃣ Admin-only create/update
-  const handleSubmit = async (e) => {
+    try {
+      const res = await fetch("/api/affiliates", {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Failed to fetch data");
+
+      if (loggedUser.role === "admin") setAllAffiliates(data.data || []);
+      if (loggedUser.role === "affiliate") setAffiliateData(data.data || {});
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    }
+  };
+
+  // ------------------------
+  // Logout
+  // ------------------------
+  const handleLogout = () => {
+    setUser(null);
+    setToken(null);
+    setAllAffiliates([]);
+    setAffiliateData(null);
+    setLoginForm({ role: "admin", identifier: "", password: "", email: "" });
+    setError(null);
+  };
+
+  // ------------------------
+  // Admin: Create / Update Affiliate
+  // ------------------------
+  const handleSubmitAffiliate = async (e) => {
     e.preventDefault();
-    if (user.role !== "admin") return alert("Only admin can configure affiliates");
+    if (!user || user.role !== "admin") return;
+    setError(null);
 
-    const url = editMode ? `/api/affiliates/${affiliate.id}` : `/api/affiliates/create`;
+    const url = editMode
+      ? `/api/affiliates/${affiliateForm.id}`
+      : "/api/affiliates/create";
     const method = editMode ? "PUT" : "POST";
 
     try {
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(form),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(affiliateForm),
       });
+
       const data = await res.json();
-      if (data.success) {
-        setForm({ name: "", email: "", commissionRate: 0.2 });
-        setEditMode(false);
-        fetchAffiliateDashboard();
-      }
+      if (!data.success) throw new Error(data.error || "Operation failed");
+
+      setAffiliateForm({ name: "", email: "", commissionRate: 0.2 });
+      setEditMode(false);
+      fetchDashboard();
     } catch (err) {
       console.error(err);
+      setError(err.message);
     }
   };
 
-  const handleEdit = () => {
-    if (!affiliate) return;
-    setForm({
-      name: affiliate.name,
-      email: affiliate.email,
-      commissionRate: affiliate.commission_rate,
+  const handleEdit = (aff) => {
+    setAffiliateForm({
+      id: aff.id,
+      name: aff.name,
+      email: aff.email,
+      commissionRate: aff.commission_rate,
     });
     setEditMode(true);
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm("Are you sure? Soft delete only.")) return;
-    if (user.role !== "admin") return alert("Only admin can delete affiliates");
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure? This will soft delete.")) return;
+    try {
+      const res = await fetch(`/api/affiliates/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    await fetch(`/api/affiliates/${affiliate.id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setAffiliate(null);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Delete failed");
+      fetchDashboard();
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    }
   };
 
-  if (loading) return <p>Loading dashboard...</p>;
-  if (!affiliate) return <p>No affiliate data. Admin can create one below.</p>;
+  // ------------------------
+  // UI
+  // ------------------------
+  if (!user)
+    return (
+      <div className="affiliate-dashboard login-page">
+        <h2>Login</h2>
+        {error && <p className="error-message">{error}</p>}
+        <form onSubmit={handleLogin}>
+          <select
+            value={loginForm.role}
+            onChange={(e) =>
+              setLoginForm({
+                ...loginForm,
+                role: e.target.value,
+                identifier: "",
+                password: "",
+                email: "",
+              })
+            }
+          >
+            <option value="admin">Admin</option>
+            <option value="affiliate">Affiliate</option>
+          </select>
 
-  return (
-    <div className="affiliate-dashboard">
-      <h2>{affiliate.name} - Dashboard</h2>
+          {loginForm.role === "admin" && (
+            <>
+              <input
+                placeholder="Admin Username"
+                value={loginForm.identifier}
+                onChange={(e) =>
+                  setLoginForm({ ...loginForm, identifier: e.target.value })
+                }
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={loginForm.password}
+                onChange={(e) =>
+                  setLoginForm({ ...loginForm, password: e.target.value })
+                }
+                required
+              />
+            </>
+          )}
 
-      {/* Admin configuration */}
-      {user.role === "admin" && (
-        <form onSubmit={handleSubmit}>
+          {loginForm.role === "affiliate" && (
+            <input
+              type="email"
+              placeholder="Affiliate Email"
+              value={loginForm.email}
+              onChange={(e) =>
+                setLoginForm({ ...loginForm, email: e.target.value })
+              }
+              required
+            />
+          )}
+
+          <button type="submit">{loading ? "Logging in..." : "Login"}</button>
+        </form>
+      </div>
+    );
+
+  // ------------------------
+  // Admin Dashboard
+  // ------------------------
+  if (user.role === "admin")
+    return (
+      <div className="affiliate-dashboard">
+        <div className="top-bar">
+          <h2>Admin Dashboard</h2>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
+
+        {error && <p className="error-message">{error}</p>}
+
+        <h3>All Affiliates</h3>
+        <table className="affiliate-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Commission</th>
+              <th>Sales</th>
+              <th>Revenue</th>
+              <th>Commission Earned</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allAffiliates.map((aff) => (
+              <tr key={aff.id}>
+                <td>{aff.name}</td>
+                <td>{aff.email}</td>
+                <td>{aff.commission_rate}</td>
+                <td>{aff.sales}</td>
+                <td>₹{aff.revenue}</td>
+                <td>₹{aff.commission_earned}</td>
+                <td>
+                  <button onClick={() => handleEdit(aff)}>✏️</button>
+                  <button onClick={() => handleDelete(aff.id)}>🗑️</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <h3>{editMode ? "Edit Affiliate" : "Create New Affiliate"}</h3>
+        <form onSubmit={handleSubmitAffiliate}>
           <input
             placeholder="Name"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            value={affiliateForm.name}
+            onChange={(e) =>
+              setAffiliateForm({ ...affiliateForm, name: e.target.value })
+            }
             required
           />
           <input
             placeholder="Email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
             type="email"
+            value={affiliateForm.email}
+            onChange={(e) =>
+              setAffiliateForm({ ...affiliateForm, email: e.target.value })
+            }
             required
           />
           <input
             placeholder="Commission Rate (0-1)"
-            value={form.commissionRate}
-            onChange={(e) => setForm({ ...form, commissionRate: parseFloat(e.target.value) })}
             type="number"
             step="0.01"
-            required
+            value={affiliateForm.commissionRate}
+            onChange={(e) =>
+              setAffiliateForm({
+                ...affiliateForm,
+                commissionRate: parseFloat(e.target.value),
+              })
+            }
           />
-          <button type="submit">{editMode ? "Update Affiliate" : "Create Affiliate"}</button>
-          {!editMode && (
-            <>
-              <button type="button" onClick={handleEdit}>Edit</button>
-              <button type="button" onClick={handleDelete}>Delete</button>
-            </>
-          )}
+          <button type="submit">{editMode ? "Update" : "Create"}</button>
         </form>
-      )}
-
-      {/* Dashboard stats */}
-      <div className="affiliate-stats">
-        <p><strong>Total Revenue:</strong> ₹{affiliate.sales.reduce((sum, s) => sum + s.amount, 0)}</p>
-        <p><strong>Paid:</strong> ₹{affiliate.sales.filter(s => s.status === "paid").reduce((sum, s) => sum + s.amount, 0)}</p>
-        <p><strong>Pending:</strong> ₹{affiliate.sales.filter(s => s.status !== "paid").reduce((sum, s) => sum + s.amount, 0)}</p>
       </div>
+    );
 
-      <h3>Sales Breakdown</h3>
-      <table className="affiliate-table">
-        <thead>
-          <tr>
-            <th>Customer</th>
-            <th>Email</th>
-            <th>Amount (₹)</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {affiliate.sales.map((sale, idx) => (
-            <tr key={idx}>
-              <td>{sale.user_name}</td>
-              <td>{sale.user_email}</td>
-              <td>{sale.amount}</td>
-              <td>{sale.status}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  // ------------------------
+  // Affiliate Dashboard
+  // ------------------------
+  if (user.role === "affiliate")
+    return (
+      <div className="affiliate-dashboard">
+        <div className="top-bar">
+          <h2>Affiliate Dashboard</h2>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
 
-      <p>
-        <strong>Referral Link:</strong>{" "}
-        <a href={`https://snowstrom.shop/${affiliate.code}`} target="_blank" rel="noreferrer">
-          {`https://snowstrom.shop/${affiliate.code}`}
-        </a>
-      </p>
-    </div>
-  );
+        {error && <p className="error-message">{error}</p>}
+
+        {affiliateData && (
+          <>
+            <h3>Your Info</h3>
+            <p>
+              <strong>Name:</strong> {affiliateData.name}
+            </p>
+            <p>
+              <strong>Email:</strong> {affiliateData.email}
+            </p>
+            <p>
+              <strong>Commission Rate:</strong> {affiliateData.commission_rate}
+            </p>
+            <p>
+              <strong>Total Sales:</strong> {affiliateData.sales}
+            </p>
+            <p>
+              <strong>Total Revenue:</strong> ₹{affiliateData.revenue}
+            </p>
+            <p>
+              <strong>Commission Earned:</strong> $
+              {affiliateData.commission_earned}
+            </p>
+          </>
+        )}
+      </div>
+    );
 };
 
 export default AffiliateDashboard;

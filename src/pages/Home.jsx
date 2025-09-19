@@ -11,35 +11,46 @@ const Home = () => {
     name: "",
     email: "",
     phone: "",
-    password: "default123",
+    password: "default123", // default password for auto-login
   });
 
-  // ✅ Auto-detect if already registered (localStorage)
+  // ✅ Check login status on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
-    if (token && user) {
-      setRegistered(true); // skip form
+    const userStr = localStorage.getItem("user");
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user && user.id) {
+          if (user.role === "admin") navigate("/affiliates");
+          else setRegistered(true);
+        }
+      } catch (err) {
+        console.error("Invalid user data in localStorage");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
     }
-  }, []);
+  }, [navigate]);
 
+  // Form validation
   const validateForm = (data) => {
     const newErrors = {};
     if (!data.name.trim()) newErrors.name = "Name is required";
     if (!data.email.trim()) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(data.email))
-      newErrors.email = "Enter a valid email";
-    if (data.phone && !/^\+?[\d\s\-\(\)]+$/.test(data.phone))
-      newErrors.phone = "Enter a valid phone number";
+    else if (!/\S+@\S+\.\S+/.test(data.email)) newErrors.email = "Enter a valid email";
+    if (data.phone && !/^\+?[\d\s\-\(\)]+$/.test(data.phone)) newErrors.phone = "Enter a valid phone number";
     return newErrors;
   };
 
+  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
+  // Register or auto-login
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -60,23 +71,55 @@ const Home = () => {
     }
 
     try {
+      // Attempt registration
       const response = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
-      const result = await response.json();
+      // Check for HTML error page (server error)
+      const text = await response.text();
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch {
+        throw new Error("Server returned invalid JSON");
+      }
 
-      if (result.success) {
+      // Email already registered → auto-login
+      if (!result.success && result.error?.toLowerCase().includes("already registered")) {
+        const loginResponse = await fetch("http://localhost:5000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: data.email, password: data.password }),
+        });
+        const loginText = await loginResponse.text();
+        let loginResult;
+        try {
+          loginResult = JSON.parse(loginText);
+        } catch {
+          throw new Error("Server returned invalid JSON on login");
+        }
+
+        if (loginResult.success) {
+          localStorage.setItem("token", loginResult.token);
+          localStorage.setItem("user", JSON.stringify(loginResult.user));
+          if (loginResult.user.role === "admin") navigate("/affiliates");
+          else setRegistered(true);
+        } else {
+          setErrors({ general: loginResult.error || "Login failed" });
+        }
+      } else if (result.success) {
         localStorage.setItem("token", result.token);
         localStorage.setItem("user", JSON.stringify(result.user));
-        setRegistered(true);
+        if (result.user.role === "admin") navigate("/affiliates");
+        else setRegistered(true);
       } else {
         setErrors({ general: result.error || "Registration failed" });
       }
-    } catch (error) {
-      console.error("Registration failed:", error);
+    } catch (err) {
+      console.error(err);
       setErrors({ general: "Server error. Try again." });
     } finally {
       setLoading(false);
@@ -97,7 +140,6 @@ const Home = () => {
           <h1 className="hero">Welcome to Snowstorm Shop</h1>
           <p>Claim your free PDF and explore powerful eBooks.</p>
 
-          {/* ✅ If registered, skip form */}
           {!registered ? (
             <form onSubmit={handleRegister} className="register-form" noValidate>
               {errors.general && <div className="general-error">{errors.general}</div>}
@@ -131,7 +173,6 @@ const Home = () => {
               />
               {errors.phone && <div className="error-message">{errors.phone}</div>}
 
-              {/* ✅ Always visible + scrollable */}
               <div className="form-submit-wrapper">
                 <button type="submit" className="hero-btn" disabled={loading}>
                   {loading ? "Processing..." : "Get Free PDF"}
