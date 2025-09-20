@@ -18,6 +18,7 @@ const AffiliateDashboard = () => {
   });
 
   const [affiliateForm, setAffiliateForm] = useState({
+    id: null,
     name: "",
     email: "",
     commissionRate: 0.2,
@@ -50,6 +51,7 @@ const AffiliateDashboard = () => {
         body: JSON.stringify(body),
       });
 
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Login failed");
 
@@ -75,6 +77,7 @@ const AffiliateDashboard = () => {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Failed to fetch data");
 
@@ -118,13 +121,18 @@ const AffiliateDashboard = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(affiliateForm),
+        body: JSON.stringify({
+          name: affiliateForm.name,
+          email: affiliateForm.email,
+          commissionRate: affiliateForm.commissionRate,
+        }),
       });
 
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Operation failed");
 
-      setAffiliateForm({ name: "", email: "", commissionRate: 0.2 });
+      setAffiliateForm({ id: null, name: "", email: "", commissionRate: 0.2 });
       setEditMode(false);
       fetchDashboard();
     } catch (err) {
@@ -151,6 +159,7 @@ const AffiliateDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Delete failed");
       fetchDashboard();
@@ -247,6 +256,7 @@ const AffiliateDashboard = () => {
               <th>Sales</th>
               <th>Revenue</th>
               <th>Commission Earned</th>
+              <th>Referral Link</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -256,9 +266,14 @@ const AffiliateDashboard = () => {
                 <td>{aff.name}</td>
                 <td>{aff.email}</td>
                 <td>{aff.commission_rate}</td>
-                <td>{aff.sales}</td>
-                <td>₹{aff.revenue}</td>
-                <td>₹{aff.commission_earned}</td>
+                <td>{aff.sales_count}</td>
+                <td>₹{aff.total_revenue}</td>
+                <td>₹{aff.total_commission}</td>
+                <td>
+                  <a href={aff.referral_link} target="_blank" rel="noopener noreferrer">
+                    {aff.referral_link}
+                  </a>
+                </td>
                 <td>
                   <button onClick={() => handleEdit(aff)}>✏️</button>
                   <button onClick={() => handleDelete(aff.id)}>🗑️</button>
@@ -320,24 +335,17 @@ const AffiliateDashboard = () => {
         {affiliateData && (
           <>
             <h3>Your Info</h3>
+            <p><strong>Name:</strong> {affiliateData.name}</p>
+            <p><strong>Email:</strong> {affiliateData.email}</p>
+            <p><strong>Commission Rate:</strong> {affiliateData.commission_rate}</p>
+            <p><strong>Total Sales:</strong> {affiliateData.sales_count}</p>
+            <p><strong>Total Revenue:</strong> ₹{affiliateData.total_revenue}</p>
+            <p><strong>Commission Earned:</strong> ₹{affiliateData.total_commission}</p>
             <p>
-              <strong>Name:</strong> {affiliateData.name}
-            </p>
-            <p>
-              <strong>Email:</strong> {affiliateData.email}
-            </p>
-            <p>
-              <strong>Commission Rate:</strong> {affiliateData.commission_rate}
-            </p>
-            <p>
-              <strong>Total Sales:</strong> {affiliateData.sales}
-            </p>
-            <p>
-              <strong>Total Revenue:</strong> ₹{affiliateData.revenue}
-            </p>
-            <p>
-              <strong>Commission Earned:</strong> $
-              {affiliateData.commission_earned}
+              <strong>Your Referral Link:</strong>{" "}
+              <a href={affiliateData.referral_link} target="_blank" rel="noopener noreferrer">
+                {affiliateData.referral_link}
+              </a>
             </p>
           </>
         )}

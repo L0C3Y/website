@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/app.css";
 
+// ✅ Backend URL from environment variable
+const BACKEND_URL = process.env.REACT_APP_API_URL;
+
 const Home = () => {
   const navigate = useNavigate();
   const [registered, setRegistered] = useState(false);
@@ -11,7 +14,7 @@ const Home = () => {
     name: "",
     email: "",
     phone: "",
-    password: "default123", // default password for auto-login
+    password: "default123",
   });
 
   // ✅ Check login status on mount
@@ -43,14 +46,12 @@ const Home = () => {
     return newErrors;
   };
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
-  // Register or auto-login
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -71,36 +72,27 @@ const Home = () => {
     }
 
     try {
-      // Attempt registration
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
-      // Check for HTML error page (server error)
       const text = await response.text();
       let result;
-      try {
-        result = JSON.parse(text);
-      } catch {
-        throw new Error("Server returned invalid JSON");
-      }
+      try { result = JSON.parse(text); } catch { throw new Error("Server returned invalid JSON"); }
 
       // Email already registered → auto-login
       if (!result.success && result.error?.toLowerCase().includes("already registered")) {
-        const loginResponse = await fetch("http://localhost:5000/api/auth/login", {
+        const loginResponse = await fetch(`${BACKEND_URL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: data.email, password: data.password }),
         });
+
         const loginText = await loginResponse.text();
         let loginResult;
-        try {
-          loginResult = JSON.parse(loginText);
-        } catch {
-          throw new Error("Server returned invalid JSON on login");
-        }
+        try { loginResult = JSON.parse(loginText); } catch { throw new Error("Server returned invalid JSON on login"); }
 
         if (loginResult.success) {
           localStorage.setItem("token", loginResult.token);

@@ -1,37 +1,35 @@
 import React, { useContext, useState } from "react";
-import { AffiliateContext } from "../App"; // ✅ Use the context
+import { AffiliateContext } from "../App";
 
 const EnhancedCheckout = ({ amount, ebookId }) => {
-  const { code: affiliateCode } = useContext(AffiliateContext); // get global affiliate code
+  const { code: affiliateCode } = useContext(AffiliateContext);
   const [loading, setLoading] = useState(false);
+
+  const BACKEND_URL = process.env.REACT_APP_API_URL; // ← Render backend URL
 
   const handlePayment = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Please login first!");
+        alert("⚠️ Please login first!");
         setLoading(false);
         return;
       }
 
       // 1️⃣ Get Razorpay key
-      const keyRes = await fetch("http://localhost:5000/api/payments/key");
+      const keyRes = await fetch(`${BACKEND_URL}/api/payments/key`);
       const keyData = await keyRes.json();
       if (!keyData.key) throw new Error("Razorpay key not found");
 
       // 2️⃣ Create order
-      const orderRes = await fetch("http://localhost:5000/api/payments/create-order", {
+      const orderRes = await fetch(`${BACKEND_URL}/api/payments/create-order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          ebookId,
-          amount,
-          affiliateCode, // automatically uses context
-        }),
+        body: JSON.stringify({ ebookId, amount, affiliateCode }),
       });
 
       const orderData = await orderRes.json();
@@ -51,12 +49,12 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
         key: keyData.key,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        name: "eBook Store",
-        description: "Purchase eBook",
+        name: "Zorgath eBook Store",
+        description: "Purchase your eBook instantly",
         order_id: razorpayOrder.id,
         handler: async (response) => {
           try {
-            const verifyRes = await fetch("http://localhost:5000/api/payments/verify", {
+            const verifyRes = await fetch(`${BACKEND_URL}/api/payments/verify`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -75,7 +73,7 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
               console.error("Backend verification error:", verifyData.error);
               alert("❌ Payment verification failed: " + verifyData.error);
             } else {
-              alert("✅ Payment successful!");
+              alert("✅ Payment successful! Download will be available shortly.");
             }
           } catch (err) {
             console.error("Verification fetch error:", err);
@@ -84,10 +82,10 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
         },
         prefill: {
           name: JSON.parse(localStorage.getItem("user"))?.name || "User",
-          email: JSON.parse(localStorage.getItem("user"))?.email || "test@example.com",
+          email: JSON.parse(localStorage.getItem("user"))?.email || "user@gmail.com.com",
           contact: "9999999999",
         },
-        theme: { color: "#3399cc" },
+        theme: { color: "#0b61acff" }, // emerald green premium vibe
       };
 
       const rzp = new window.Razorpay(options);
@@ -101,8 +99,13 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
   };
 
   return (
-    <button onClick={handlePayment} disabled={loading}>
-      {loading ? "Processing..." : `Pay ₹${amount}`}
+    <button
+      onClick={handlePayment}
+      disabled={loading}
+      className={`w-full py-3 rounded-lg font-semibold text-lg transition 
+        ${loading ? "bg-gray-600 cursor-not-allowed" : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg"}`}
+    >
+      {loading ? "⏳ Processing..." : `💳 Pay ₹${amount}`}
     </button>
   );
 };
