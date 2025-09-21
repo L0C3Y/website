@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import EnhancedCheckout from "../component/EnhancedCheckout.jsx";
 import "../styles/app.css";
-import rpCover from "../../media/rp.png";
+import rpCover from "../media/rp.png";
 import wdCover from "../../media/workdone.png";
 
 // ✅ Use Vite env
