@@ -28,11 +28,11 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
       if (!token) throw new Error("Login required to purchase");
 
       // 1️⃣ Get Razorpay key
-      const keyData = await safeJsonFetch(`${BACKEND_URL}api/payments/key`);
+      const keyData = await safeJsonFetch(`${BACKEND_URL}/api/payments/key`);
       if (!keyData.key) throw new Error("Razorpay key missing from backend");
 
       // 2️⃣ Create order
-      const orderData = await safeJsonFetch(`${BACKEND_URL}api/payments/create-order`, {
+      const orderData = await safeJsonFetch(`${BACKEND_URL}/api/payments/create-order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,7 +59,7 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
         order_id: razorpayOrder.id,
         handler: async (response) => {
           try {
-            const verifyData = await safeJsonFetch(`${BACKEND_URL}api/payments/verify`, {
+            const verifyData = await safeJsonFetch(`${BACKEND_URL}/api/payments/verify`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
