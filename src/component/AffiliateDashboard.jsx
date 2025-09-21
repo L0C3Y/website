@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from "react";
 import "../styles/cards.css";
 
+
+const API_BASE = "https://backend-gfho.onrender.com"; // change if backend URL differs
+
+
 const AffiliateDashboard = () => {
   const [user, setUser] = useState(null); // { role, id, name, email }
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+
   const [allAffiliates, setAllAffiliates] = useState([]);
   const [affiliateData, setAffiliateData] = useState(null);
+
 
   const [loginForm, setLoginForm] = useState({
     role: "admin",
@@ -16,6 +22,7 @@ const AffiliateDashboard = () => {
     password: "",
     email: "",
   });
+
 
   const [affiliateForm, setAffiliateForm] = useState({
     id: null,
@@ -25,6 +32,7 @@ const AffiliateDashboard = () => {
   });
   const [editMode, setEditMode] = useState(false);
 
+
   // ------------------------
   // Login Handler
   // ------------------------
@@ -33,17 +41,20 @@ const AffiliateDashboard = () => {
     setLoading(true);
     setError(null);
 
+
     try {
       let url = "";
       let body = {};
 
+
       if (loginForm.role === "admin") {
-        url = "/api/affiliates/admin-login";
+        url = `${API_BASE}/api/affiliates/admin-login`;
         body = { username: loginForm.identifier, password: loginForm.password };
       } else if (loginForm.role === "affiliate") {
-        url = "/api/affiliates/affiliate-login";
+        url = `${API_BASE}/api/affiliates/affiliate-login`;
         body = { email: loginForm.email };
       }
+
 
       const res = await fetch(url, {
         method: "POST",
@@ -51,9 +62,11 @@ const AffiliateDashboard = () => {
         body: JSON.stringify(body),
       });
 
+
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Login failed");
+
 
       setUser(data.user);
       setToken(data.token);
@@ -66,20 +79,24 @@ const AffiliateDashboard = () => {
     }
   };
 
+
   // ------------------------
   // Fetch dashboard data
   // ------------------------
   const fetchDashboard = async (loggedUser = user, authToken = token) => {
     if (!loggedUser || !authToken) return;
 
+
     try {
-      const res = await fetch("/api/affiliates", {
+      const res = await fetch(`${API_BASE}/api/affiliates`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
+
 
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Failed to fetch data");
+
 
       if (loggedUser.role === "admin") setAllAffiliates(data.data || []);
       if (loggedUser.role === "affiliate") setAffiliateData(data.data || {});
@@ -88,6 +105,7 @@ const AffiliateDashboard = () => {
       setError(err.message);
     }
   };
+
 
   // ------------------------
   // Logout
@@ -101,6 +119,7 @@ const AffiliateDashboard = () => {
     setError(null);
   };
 
+
   // ------------------------
   // Admin: Create / Update Affiliate
   // ------------------------
@@ -109,10 +128,12 @@ const AffiliateDashboard = () => {
     if (!user || user.role !== "admin") return;
     setError(null);
 
+
     const url = editMode
-      ? `/api/affiliates/${affiliateForm.id}`
-      : "/api/affiliates/create";
+      ? `${API_BASE}/api/affiliates/${affiliateForm.id}`
+      : `${API_BASE}/api/affiliates/create`;
     const method = editMode ? "PUT" : "POST";
+
 
     try {
       const res = await fetch(url, {
@@ -128,9 +149,11 @@ const AffiliateDashboard = () => {
         }),
       });
 
+
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Operation failed");
+
 
       setAffiliateForm({ id: null, name: "", email: "", commissionRate: 0.2 });
       setEditMode(false);
@@ -140,6 +163,7 @@ const AffiliateDashboard = () => {
       setError(err.message);
     }
   };
+
 
   const handleEdit = (aff) => {
     setAffiliateForm({
@@ -151,13 +175,15 @@ const AffiliateDashboard = () => {
     setEditMode(true);
   };
 
+
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure? This will soft delete.")) return;
     try {
-      const res = await fetch(`/api/affiliates/${id}`, {
+      const res = await fetch(`${API_BASE}/api/affiliates/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+
 
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
@@ -168,6 +194,7 @@ const AffiliateDashboard = () => {
       setError(err.message);
     }
   };
+
 
   // ------------------------
   // UI
@@ -194,6 +221,7 @@ const AffiliateDashboard = () => {
             <option value="affiliate">Affiliate</option>
           </select>
 
+
           {loginForm.role === "admin" && (
             <>
               <input
@@ -216,6 +244,7 @@ const AffiliateDashboard = () => {
             </>
           )}
 
+
           {loginForm.role === "affiliate" && (
             <input
               type="email"
@@ -228,10 +257,12 @@ const AffiliateDashboard = () => {
             />
           )}
 
+
           <button type="submit">{loading ? "Logging in..." : "Login"}</button>
         </form>
       </div>
     );
+
 
   // ------------------------
   // Admin Dashboard
@@ -244,7 +275,9 @@ const AffiliateDashboard = () => {
           <button onClick={handleLogout}>Logout</button>
         </div>
 
+
         {error && <p className="error-message">{error}</p>}
+
 
         <h3>All Affiliates</h3>
         <table className="affiliate-table">
@@ -270,7 +303,11 @@ const AffiliateDashboard = () => {
                 <td>₹{aff.total_revenue}</td>
                 <td>₹{aff.total_commission}</td>
                 <td>
-                  <a href={aff.referral_link} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={aff.referral_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {aff.referral_link}
                   </a>
                 </td>
@@ -282,6 +319,7 @@ const AffiliateDashboard = () => {
             ))}
           </tbody>
         </table>
+
 
         <h3>{editMode ? "Edit Affiliate" : "Create New Affiliate"}</h3>
         <form onSubmit={handleSubmitAffiliate}>
@@ -319,6 +357,7 @@ const AffiliateDashboard = () => {
       </div>
     );
 
+
   // ------------------------
   // Affiliate Dashboard
   // ------------------------
@@ -330,20 +369,40 @@ const AffiliateDashboard = () => {
           <button onClick={handleLogout}>Logout</button>
         </div>
 
+
         {error && <p className="error-message">{error}</p>}
+
 
         {affiliateData && (
           <>
             <h3>Your Info</h3>
-            <p><strong>Name:</strong> {affiliateData.name}</p>
-            <p><strong>Email:</strong> {affiliateData.email}</p>
-            <p><strong>Commission Rate:</strong> {affiliateData.commission_rate}</p>
-            <p><strong>Total Sales:</strong> {affiliateData.sales_count}</p>
-            <p><strong>Total Revenue:</strong> ₹{affiliateData.total_revenue}</p>
-            <p><strong>Commission Earned:</strong> ₹{affiliateData.total_commission}</p>
+            <p>
+              <strong>Name:</strong> {affiliateData.name}
+            </p>
+            <p>
+              <strong>Email:</strong> {affiliateData.email}
+            </p>
+            <p>
+              <strong>Commission Rate:</strong>{" "}
+              {affiliateData.commission_rate}
+            </p>
+            <p>
+              <strong>Total Sales:</strong> {affiliateData.sales_count}
+            </p>
+            <p>
+              <strong>Total Revenue:</strong> ₹{affiliateData.total_revenue}
+            </p>
+            <p>
+              <strong>Commission Earned:</strong> ₹
+              {affiliateData.total_commission}
+            </p>
             <p>
               <strong>Your Referral Link:</strong>{" "}
-              <a href={affiliateData.referral_link} target="_blank" rel="noopener noreferrer">
+              <a
+                href={affiliateData.referral_link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {affiliateData.referral_link}
               </a>
             </p>
@@ -352,5 +411,6 @@ const AffiliateDashboard = () => {
       </div>
     );
 };
+
 
 export default AffiliateDashboard;
