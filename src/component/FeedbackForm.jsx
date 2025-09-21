@@ -1,20 +1,45 @@
 import React, { useState } from "react";
 import "../styles/cards.css";
 
-const FeedbackForm = ({ defaultName = "" , onSubmit }) => {
+const API_BASE = "https://backend-gfho.onrender.com"; // your backend URL
+
+const FeedbackForm = ({ defaultName = "" }) => {
   const [name, setName] = useState(defaultName);
   const [feedback, setFeedback] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!feedback.trim()) return;
 
-    onSubmit({ name: name || "Anonymous", feedback });
-    setFeedback("");
-    setSubmitted(true);
+    setLoading(true);
+    setError(null);
 
-    setTimeout(() => setSubmitted(false), 2000); // success message fade
+    try {
+      const res = await fetch(`${API_BASE}/api/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name || "Anonymous",
+          feedback,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const data = await res.json();
+
+      if (!data.success) throw new Error(data.error || "Failed to submit");
+
+      setFeedback("");
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 2000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,12 +59,13 @@ const FeedbackForm = ({ defaultName = "" , onSubmit }) => {
           onChange={(e) => setFeedback(e.target.value)}
           required
         ></textarea>
-        <button type="submit" className="feedback-btn">
-          Submit
+        <button type="submit" className="feedback-btn" disabled={loading}>
+          {loading ? "Submitting..." : "Submit"}
         </button>
       </form>
 
       {submitted && <p className="feedback-success">✅ Thanks for your feedback!</p>}
+      {error && <p className="feedback-error">❌ {error}</p>}
     </div>
   );
 };
