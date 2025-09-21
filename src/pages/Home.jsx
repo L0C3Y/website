@@ -97,7 +97,7 @@ const Home = () => {
   return (
     <div className="home-page">
       <div className="hero-video-bg">
-        <video autoPlay loop muted playsInline className="hero-bg-video" src="/media/bgv.mp4" />
+        <video autoPlay loop muted playsInline className="hero-bg-video" src="../../media/bgv.mp4" />
         <div className="hero-overlay">
           <h1 className="hero">Welcome to Snowstorm Shop</h1>
           <p>Claim your free PDF and explore powerful eBooks.</p>
