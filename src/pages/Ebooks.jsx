@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import EnhancedCheckout from "../component/EnhancedCheckout.jsx";
 import "../styles/app.css";
 import rpCover from "../media/rp.png";
-import wdCover from "../../media/workdone.png";
+import wdCover from "../media/workdone.png";
 
 // ✅ Use Vite env
 const BACKEND_URL = import.meta.env.VITE_API_URL;
