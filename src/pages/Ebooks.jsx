@@ -1,9 +1,12 @@
 // src/pages/Ebooks.jsx
 import React, { useEffect, useState } from "react";
 import EnhancedCheckout from "../component/EnhancedCheckout.jsx";
-import "../styles/app.css"; // ✅ Premium styling
+import "../styles/app.css"; 
 import rpCover from "../../media/rp.png";
 import wdCover from "../../media/workdone.png";
+
+// ✅ Use Vite env
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 const Ebooks = () => {
   const [refCode, setRefCode] = useState(null);
@@ -19,6 +22,7 @@ const Ebooks = () => {
   // 2️⃣ Track page visit automatically
   useEffect(() => {
     const logVisit = async () => {
+      if (!refCode) return;
       try {
         const visitPayload = {
           affiliateCode: refCode,
@@ -28,7 +32,7 @@ const Ebooks = () => {
           landingPath: window.location.pathname,
         };
 
-        await fetch(`${process.env.REACT_APP_API_URL}/api/visits`, {
+        await fetch(`${BACKEND_URL}/api/visits`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(visitPayload),
@@ -97,13 +101,10 @@ const Ebooks = () => {
 
       {/* Modal Popup */}
       {selectedEbook && (
-        <div
-          className="modal-overlay"
-          onClick={() => setSelectedEbook(null)}
-        >
+        <div className="modal-overlay" onClick={() => setSelectedEbook(null)}>
           <div
             className="modal-content"
-            onClick={(e) => e.stopPropagation()} // prevent closing on content click
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               className="close-btn"
