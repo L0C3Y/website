@@ -1,3 +1,4 @@
+// src/pages/Home.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/app.css";
@@ -10,12 +11,7 @@ const Home = () => {
   const [registered, setRegistered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    password: "default123",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "default123" });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -53,13 +49,7 @@ const Home = () => {
     e.preventDefault();
     setLoading(true);
     setErrors({});
-
-    const data = {
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      phone: formData.phone.trim(),
-      password: formData.password,
-    };
+    const data = { ...formData, name: formData.name.trim(), email: formData.email.trim(), phone: formData.phone.trim() };
 
     const validationErrors = validateForm(data);
     if (Object.keys(validationErrors).length > 0) {
@@ -74,6 +64,7 @@ const Home = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+
       const result = await res.json();
 
       if (!result.success && result.error?.toLowerCase().includes("already registered")) {
@@ -83,23 +74,18 @@ const Home = () => {
           body: JSON.stringify({ email: data.email, password: data.password }),
         });
         const loginResult = await loginRes.json();
-
         if (loginResult.success) {
           localStorage.setItem("token", loginResult.token);
           localStorage.setItem("user", JSON.stringify(loginResult.user));
           if (loginResult.user.role === "admin") navigate("/affiliates");
           else setRegistered(true);
-        } else {
-          setErrors({ general: loginResult.error || "Login failed" });
-        }
+        } else setErrors({ general: loginResult.error || "Login failed" });
       } else if (result.success) {
         localStorage.setItem("token", result.token);
         localStorage.setItem("user", JSON.stringify(result.user));
         if (result.user.role === "admin") navigate("/affiliates");
         else setRegistered(true);
-      } else {
-        setErrors({ general: result.error || "Registration failed" });
-      }
+      } else setErrors({ general: result.error || "Registration failed" });
     } catch (err) {
       console.error(err);
       setErrors({ general: "Server error. Try again." });
@@ -107,12 +93,6 @@ const Home = () => {
       setLoading(false);
     }
   };
-
-  const navButtons = [
-    { text: "View eBooks", path: "/ebooks" },
-    { text: "Upcoming Titles", path: "/upcoming" },
-    { text: "Give Feedback", path: "/feedback" },
-  ];
 
   return (
     <div className="home-page">
@@ -131,22 +111,20 @@ const Home = () => {
               {errors.email && <div className="error-message">{errors.email}</div>}
               <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Phone (optional)" />
               {errors.phone && <div className="error-message">{errors.phone}</div>}
-              <div className="form-submit-wrapper">
-                <button type="submit" className="hero-btn" disabled={loading}>
-                  {loading ? "Processing..." : "Get Free PDF"}
-                </button>
-              </div>
+              <button type="submit" className="hero-btn" disabled={loading}>
+                {loading ? "Processing..." : "Get Free PDF"}
+              </button>
             </form>
           ) : (
-            <section className="thank-you">
+            <div className="thank-you">
               <h2>⚔️ Welcome, Warrior!</h2>
               <p>Your free PDF is on its way! Explore our collection:</p>
               <div className="nav-links">
-                {navButtons.map((btn, idx) => (
-                  <button key={idx} onClick={() => navigate(btn.path)} className="hero-btn">{btn.text}</button>
-                ))}
+                <button className="hero-btn" onClick={() => navigate("/ebooks")}>View eBooks</button>
+                <button className="hero-btn" onClick={() => navigate("/upcoming")}>Upcoming Titles</button>
+                <button className="hero-btn" onClick={() => navigate("/feedback")}>Give Feedback</button>
               </div>
-            </section>
+            </div>
           )}
         </div>
       </div>
