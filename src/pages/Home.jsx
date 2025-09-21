@@ -59,7 +59,7 @@ const Home = () => {
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/register`, {
+      const res = await fetch(`${BACKEND_URL}api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -68,7 +68,7 @@ const Home = () => {
       const result = await res.json();
 
       if (!result.success && result.error?.toLowerCase().includes("already registered")) {
-        const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        const loginRes = await fetch(`${BACKEND_URL}api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: data.email, password: data.password }),
