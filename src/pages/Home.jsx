@@ -1,4 +1,5 @@
 // src/pages/Home.jsx
+import bgv from "../media/bgv.mp4";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/app.css";
@@ -97,7 +98,7 @@ const Home = () => {
   return (
     <div className="home-page">
       <div className="hero-video-bg">
-        <video autoPlay loop muted playsInline className="hero-bg-video" src="s/media/bgv.mp4" />
+        <video autoPlay loop muted playsInline className="hero-bg-video" src={bgv} />
         <div className="hero-overlay">
           <h1 className="hero">Welcome to Snowstorm Shop</h1>
           <p>Claim your free PDF and explore powerful eBooks.</p>
