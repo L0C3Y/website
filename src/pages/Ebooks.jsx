@@ -43,7 +43,7 @@ const Ebooks = () => {
   const ebooks = [
     {
       id: "ebook001",
-      title: "Rising Power",
+      title: "The Life of a Dot",
       description:
         "Master the strategies to rise above challenges and dominate your field. Includes mental models, tactics, and proven methods to gain an edge.",
       cover: rpCover,

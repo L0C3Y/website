@@ -2,7 +2,8 @@ import React, { useContext, useState } from "react";
 import { AffiliateContext } from "../App";
 
 // ✅ Use Vite environment variable
-const BACKEND_URL = import.meta.env.VITE_API_URL;
+export const BACKEND_URL = import.meta.env.VITE_API_URL.replace(/\/+$/, "");
+
 
 const EnhancedCheckout = ({ amount, ebookId }) => {
   const { code: affiliateCode } = useContext(AffiliateContext);
