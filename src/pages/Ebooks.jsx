@@ -51,7 +51,7 @@ const Ebooks = () => {
     },
     {
       id: "ebook002",
-      title: "Work Done Right",
+      title: "Why",
       description:
         "A deep dive into productivity, efficiency, and building unstoppable momentum. Learn how to eliminate distractions, systemize work, and maximize output.",
       cover: wdCover,
