@@ -27,7 +27,9 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
       if (!token) throw new Error("Login required to purchase");
 
       // 1️⃣ Fetch Razorpay key
-      const keyData = await safeJsonFetch(`${BACKEND_URL}/api/payments/key`);
+      const keyData = await safeJsonFetch(`${BACKEND_URL}/api/payments/key`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!keyData.key) throw new Error("Razorpay key missing from backend");
 
       // 2️⃣ Create order
