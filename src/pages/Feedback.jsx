@@ -4,6 +4,8 @@ import FeedbackForm from "../component/FeedbackForm";
 const Feedback = ({ ebookId }) => {
   const [user, setUser] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Load logged-in user from localStorage
   useEffect(() => {
@@ -19,12 +21,18 @@ const Feedback = ({ ebookId }) => {
     if (!ebookId) return;
 
     const fetchFeedbacks = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const res = await fetch(`${API_URL}/api/feedbacks/${ebookId}`);
         const data = await res.json();
         if (data.success) setFeedbacks(data.data || []);
+        else setError(data.error || "Failed to load feedbacks");
       } catch (err) {
         console.error("Error fetching feedbacks:", err);
+        setError("Network error while fetching feedbacks");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -38,6 +46,8 @@ const Feedback = ({ ebookId }) => {
       return;
     }
 
+    setError(null);
+
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API_URL}/api/feedbacks`, {
@@ -50,33 +60,40 @@ const Feedback = ({ ebookId }) => {
           userId: user.id,
           ebookId,
           message: feedback,
-          userName: name || "Anonymous",
+          userName: name || user.name || "Anonymous",
         }),
       });
+
       const data = await res.json();
 
       if (data.success) {
+        // Append new feedback to list immediately
         setFeedbacks((prev) => [...prev, data.data]);
       } else {
-        alert("❌ Failed to submit feedback: " + (data.error || "Unknown error"));
+        setError(data.error || "Failed to submit feedback");
       }
     } catch (err) {
       console.error("Error submitting feedback:", err);
-      alert("❌ Error submitting feedback");
+      setError("Network error while submitting feedback");
     }
   };
 
   return (
     <div className="feedback-page">
       <h2>User Feedback</h2>
+
+      {error && <p className="error-message">{error}</p>}
+
       <FeedbackForm
         defaultName={user?.name || ""}
         onSubmit={handleFeedbackSubmit}
       />
 
       <h3>All Feedbacks</h3>
-      {feedbacks.length === 0 ? (
-        <p>No feedbacks yet.</p>
+      {loading ? (
+        <p>Loading feedbacks...</p>
+      ) : feedbacks.length === 0 ? (
+        <p>No feedbacks yet. Be the first to leave one!</p>
       ) : (
         feedbacks.map((fb, idx) => (
           <div key={idx} className="feedback-item">
