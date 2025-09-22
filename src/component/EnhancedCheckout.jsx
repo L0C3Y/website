@@ -1,15 +1,14 @@
 import React, { useContext, useState } from "react";
 import { AffiliateContext } from "../App";
 
-// ✅ Use Vite environment variable
+// ✅ Backend URL from Vite env
 export const BACKEND_URL = import.meta.env.VITE_API_URL.replace(/\/+$/, "");
-
 
 const EnhancedCheckout = ({ amount, ebookId }) => {
   const { code: affiliateCode } = useContext(AffiliateContext);
   const [loading, setLoading] = useState(false);
 
-  // Safe JSON fetch
+  // Safe fetch wrapper
   const safeJsonFetch = async (url, options) => {
     const res = await fetch(url, options);
     const text = await res.text();
@@ -27,7 +26,7 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Login required to purchase");
 
-      // 1️⃣ Get Razorpay key
+      // 1️⃣ Fetch Razorpay key
       const keyData = await safeJsonFetch(`${BACKEND_URL}/api/payments/key`);
       if (!keyData.key) throw new Error("Razorpay key missing from backend");
 
@@ -38,7 +37,7 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ ebookId, amount, affiliateCode }),
+        body: JSON.stringify({ amount, ebookId, affiliateCode }),
       });
 
       if (!orderData.success || !orderData.razorpayOrder)
