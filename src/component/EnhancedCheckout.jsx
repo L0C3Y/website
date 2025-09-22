@@ -7,7 +7,8 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
   const { code: affiliateCode } = useContext(AffiliateContext);
   const [loading, setLoading] = useState(false);
 
-  const safeJsonFetch = async (url, options) => {
+  // Safe fetch JSON
+  const safeJsonFetch = async (url, options = {}) => {
     const res = await fetch(url, options);
     const text = await res.text();
     try {
@@ -23,21 +24,19 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Login required");
 
-      // ✅ Get Razorpay key
+      // 1️⃣ Get Razorpay key
       const { key } = await safeJsonFetch(`${BACKEND_URL}/api/payments/key`);
 
-      // ✅ Create order
+      // 2️⃣ Create order
       const orderData = await safeJsonFetch(`${BACKEND_URL}/api/payments/create-order`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ amount, ebookId, affiliateCode }),
       });
 
       if (!orderData.success) throw new Error(orderData.error || "Order creation failed");
 
+      // 3️⃣ Open Razorpay checkout
       const rzp = new window.Razorpay({
         key,
         amount: orderData.razorpayOrder.amount,
@@ -55,23 +54,22 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
           try {
             const verify = await safeJsonFetch(`${BACKEND_URL}/api/payments/verify`, {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({ ...response, orderId: orderData.order.id }),
             });
+
             if (!verify.success) alert("❌ Payment verification failed");
             else alert("✅ Payment successful!");
           } catch (err) {
             alert("❌ Verification error: " + err.message);
           }
         },
+        modal: { ondismiss: () => setLoading(false) },
       });
 
       rzp.open();
     } catch (err) {
-      alert("❌ Payment failed: " + err.message);
+      alert("❌ Payment error: " + err.message);
     } finally {
       setLoading(false);
     }
