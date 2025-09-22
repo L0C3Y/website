@@ -1,13 +1,11 @@
 // src/pages/Home.jsx
-import bgv from "../media/bgv.mp4";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import bgv from "../media/bgv.mp4";
 import "../styles/app.css";
 
-// ✅ Production: Ensure trailing slash in backend URL
-const BACKEND_URL = import.meta.env.VITE_API_URL.endsWith("/")
-  ? import.meta.env.VITE_API_URL
-  : import.meta.env.VITE_API_URL + "/";
+// ✅ Correct for Vite
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 const Home = () => {
   const navigate = useNavigate();
@@ -18,9 +16,10 @@ const Home = () => {
     name: "",
     email: "",
     phone: "",
-    password: "default123", // default password for auto-login
+    password: "default123",
   });
 
+  // ---------- Check token / user ----------
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
@@ -38,6 +37,7 @@ const Home = () => {
     }
   }, [navigate]);
 
+  // ---------- Form Validation ----------
   const validateForm = (data) => {
     const newErrors = {};
     if (!data.name.trim()) newErrors.name = "Name is required";
@@ -54,15 +54,17 @@ const Home = () => {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // ---------- Register / Login ----------
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrors({});
+
     const data = {
-      ...formData,
       name: formData.name.trim(),
       email: formData.email.trim(),
       phone: formData.phone.trim(),
+      password: formData.password,
     };
 
     const validationErrors = validateForm(data);
@@ -73,39 +75,57 @@ const Home = () => {
     }
 
     try {
-      // 1️⃣ Registration attempt
-      const res = await fetch(`${BACKEND_URL}api/auth/register`, {
+      // 1️⃣ Register
+      const registerRes = await fetch(`${BACKEND_URL}api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        }),
       });
-      const result = await res.json();
 
-      // 2️⃣ If already registered, auto-login
-      if (!result.success && result.error?.toLowerCase().includes("already registered")) {
+      const registerResult = await registerRes.json();
+
+      if (registerResult.success) {
+        localStorage.setItem("token", registerResult.token);
+        localStorage.setItem("user", JSON.stringify(registerResult.user));
+        if (registerResult.user.role === "admin") navigate("/affiliates");
+        else setRegistered(true);
+        return;
+      }
+
+      // 2️⃣ If already registered → login
+      if (
+        registerResult.error &&
+        registerResult.error.toLowerCase().includes("already registered")
+      ) {
         const loginRes = await fetch(`${BACKEND_URL}api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: data.email, password: data.password }),
+          body: JSON.stringify({
+            role: "user",
+            identifier: data.email,
+            password: data.password,
+          }),
         });
+
         const loginResult = await loginRes.json();
+
         if (loginResult.success) {
           localStorage.setItem("token", loginResult.token);
           localStorage.setItem("user", JSON.stringify(loginResult.user));
           if (loginResult.user.role === "admin") navigate("/affiliates");
           else setRegistered(true);
         } else setErrors({ general: loginResult.error || "Login failed" });
+        return;
       }
-      // 3️⃣ Successful registration
-      else if (result.success) {
-        localStorage.setItem("token", result.token);
-        localStorage.setItem("user", JSON.stringify(result.user));
-        if (result.user.role === "admin") navigate("/affiliates");
-        else setRegistered(true);
-      } else setErrors({ general: result.error || "Registration failed" });
+
+      setErrors({ general: registerResult.error || "Registration failed" });
     } catch (err) {
-      console.error("Production fetch error:", err);
-      setErrors({ general: "Server error. Please try again later." });
+      console.error("Register/Login error:", err);
+      setErrors({ general: "Server error. Try again." });
     } finally {
       setLoading(false);
     }
@@ -122,12 +142,36 @@ const Home = () => {
           {!registered ? (
             <form onSubmit={handleRegister} className="register-form" noValidate>
               {errors.general && <div className="general-error">{errors.general}</div>}
-              <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="Your Name" required />
+
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Your Name"
+                required
+              />
               {errors.name && <div className="error-message">{errors.name}</div>}
-              <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Your Email" required />
+
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Your Email"
+                required
+              />
               {errors.email && <div className="error-message">{errors.email}</div>}
-              <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Phone (optional)" />
+
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="Phone (optional)"
+              />
               {errors.phone && <div className="error-message">{errors.phone}</div>}
+
               <button type="submit" className="hero-btn" disabled={loading}>
                 {loading ? "Processing..." : "Get Free PDF"}
               </button>
@@ -137,9 +181,15 @@ const Home = () => {
               <h2>⚔️ Welcome, Warrior!</h2>
               <p>Your free PDF is on its way! Explore our collection:</p>
               <div className="nav-links">
-                <button className="hero-btn" onClick={() => navigate("/ebooks")}>View eBooks</button>
-                <button className="hero-btn" onClick={() => navigate("/upcoming")}>Upcoming Titles</button>
-                <button className="hero-btn" onClick={() => navigate("/feedback")}>Give Feedback</button>
+                <button className="hero-btn" onClick={() => navigate("/ebooks")}>
+                  View eBooks
+                </button>
+                <button className="hero-btn" onClick={() => navigate("/upcoming")}>
+                  Upcoming Titles
+                </button>
+                <button className="hero-btn" onClick={() => navigate("/feedback")}>
+                  Give Feedback
+                </button>
               </div>
             </div>
           )}
