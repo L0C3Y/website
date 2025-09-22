@@ -1,112 +1,71 @@
 import React, { useContext, useState } from "react";
 import { AffiliateContext } from "../App";
 
-// Backend URL from Vite env
 export const BACKEND_URL = import.meta.env.VITE_API_URL.replace(/\/+$/, "");
 
 const EnhancedCheckout = ({ amount, ebookId }) => {
   const { code: affiliateCode } = useContext(AffiliateContext);
   const [loading, setLoading] = useState(false);
 
-  // Safe fetch with JSON parse
   const safeJsonFetch = async (url, options) => {
     const res = await fetch(url, options);
     const text = await res.text();
-    try {
-      return JSON.parse(text);
-    } catch {
-      console.error("Backend returned invalid JSON:", text);
-      throw new Error("Backend returned invalid JSON");
-    }
+    try { return JSON.parse(text); } 
+    catch { throw new Error("Backend returned invalid JSON"); }
   };
 
   const handlePayment = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      if (!token) throw new Error("Login required to purchase");
+      if (!token) throw new Error("Login required");
 
-      // 1️⃣ Get Razorpay key (public endpoint)
-      const keyData = await safeJsonFetch(`${BACKEND_URL}/api/payments/key`);
-      if (!keyData.key) throw new Error("Razorpay key missing from backend");
+      // ✅ Public Razorpay key
+      const { key } = await safeJsonFetch(`${BACKEND_URL}/api/payments/key`);
 
-      // 2️⃣ Create order
+      // ✅ Create order
       const orderData = await safeJsonFetch(`${BACKEND_URL}/api/payments/create-order`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ amount, ebookId, affiliateCode }),
       });
 
-      if (!orderData.success || !orderData.razorpayOrder)
-        throw new Error(orderData.error || "Order creation failed");
+      if (!orderData.success) throw new Error(orderData.error || "Order creation failed");
 
-      const { razorpayOrder, order } = orderData;
-
-      // 3️⃣ Razorpay checkout
-      if (!window.Razorpay)
-        throw new Error("Razorpay not loaded. Add checkout.js in index.html");
-
-      const options = {
-        key: keyData.key,
-        amount: razorpayOrder.amount,
-        currency: razorpayOrder.currency,
+      const rzp = new window.Razorpay({
+        key,
+        amount: orderData.razorpayOrder.amount,
+        currency: orderData.razorpayOrder.currency,
+        order_id: orderData.razorpayOrder.id,
         name: "Zorgath eBook Store",
         description: "Purchase your eBook instantly",
-        order_id: razorpayOrder.id,
-        handler: async (response) => {
-          try {
-            const verifyData = await safeJsonFetch(`${BACKEND_URL}/api/payments/verify`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                orderId: order.id,
-              }),
-            });
-
-            if (!verifyData.success) alert("❌ Payment verification failed");
-            else alert("✅ Payment successful! Download available shortly.");
-          } catch (err) {
-            console.error("Verification error:", err);
-            alert("❌ Payment verification failed: " + err.message);
-          }
-        },
         prefill: {
           name: JSON.parse(localStorage.getItem("user"))?.name || "User",
           email: JSON.parse(localStorage.getItem("user"))?.email || "user@example.com",
           contact: "9999999999",
         },
         theme: { color: "#0b61acff" },
-      };
+        handler: async (response) => {
+          try {
+            const verify = await safeJsonFetch(`${BACKEND_URL}/api/payments/verify`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ ...response, orderId: orderData.order.id }),
+            });
+            if (!verify.success) alert("❌ Payment verification failed");
+            else alert("✅ Payment successful!");
+          } catch (err) { alert("❌ Verification error: " + err.message); }
+        },
+      });
 
-      const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
-      console.error("Payment error:", err);
       alert("❌ Payment failed: " + err.message);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   return (
-    <button
-      onClick={handlePayment}
-      disabled={loading}
-      className={`w-full py-3 rounded-lg font-semibold text-lg transition ${
-        loading
-          ? "bg-gray-600 cursor-not-allowed"
-          : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg"
-      }`}
-    >
+    <button onClick={handlePayment} disabled={loading} className={`w-full py-3 rounded-lg font-semibold text-lg ${loading ? "bg-gray-600" : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg"}`}>
       {loading ? "⏳ Processing..." : `💳 Pay ₹${amount}`}
     </button>
   );
