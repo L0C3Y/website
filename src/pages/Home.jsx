@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import bgv from "../media/bgv.mp4";
 import "../styles/app.css";
 
-const BACKEND_URL = import.meta.env.VITE_API_URL;
+const BACKEND_URL = import.meta.env.VITE_API_URL; // Ensure ends with "/"
 
 const Home = () => {
   const navigate = useNavigate();
@@ -54,11 +54,12 @@ const Home = () => {
     e.preventDefault();
     setLoading(true);
     setErrors({});
+
     const data = {
-      ...formData,
       name: formData.name.trim(),
       email: formData.email.trim(),
       phone: formData.phone.trim(),
+      password: formData.password,
     };
 
     const validationErrors = validateForm(data);
@@ -69,52 +70,41 @@ const Home = () => {
     }
 
     try {
-      // Registration
-      const res = await fetch(`${BACKEND_URL}api/auth/register`, {
+      // 1️⃣ Register
+      const registerRes = await fetch(`${BACKEND_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      const result = await res.json();
 
-      if (result.success) {
-        // Auto-login after registration
-        const loginRes = await fetch(`${BACKEND_URL}api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            role: "user",
-            identifier: data.email,
-            password: data.password,
-          }),
-        });
-        const loginResult = await loginRes.json();
-        if (loginResult.success) {
-          localStorage.setItem("token", loginResult.token);
-          localStorage.setItem("user", JSON.stringify(loginResult.user));
-          if (loginResult.user.role === "admin") navigate("/affiliates");
-          else setRegistered(true);
-        } else setErrors({ general: loginResult.error || "Login failed" });
-      } else if (result.error?.toLowerCase().includes("already registered")) {
-        // Login existing user
-        const loginRes = await fetch(`${BACKEND_URL}api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            role: "user",
-            identifier: data.email,
-            password: data.password,
-          }),
-        });
-        const loginResult = await loginRes.json();
-        if (loginResult.success) {
-          localStorage.setItem("token", loginResult.token);
-          localStorage.setItem("user", JSON.stringify(loginResult.user));
-          if (loginResult.user.role === "admin") navigate("/affiliates");
-          else setRegistered(true);
-        } else setErrors({ general: loginResult.error || "Login failed" });
+      const registerResult = await registerRes.json();
+
+      if (!registerResult.success && !registerResult.error?.toLowerCase().includes("already registered")) {
+        setErrors({ general: registerResult.error || "Registration failed" });
+        setLoading(false);
+        return;
+      }
+
+      // 2️⃣ Login (new or existing user)
+      const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: "user",
+          identifier: data.email,
+          password: data.password,
+        }),
+      });
+
+      const loginResult = await loginRes.json();
+
+      if (loginResult.success) {
+        localStorage.setItem("token", loginResult.token);
+        localStorage.setItem("user", JSON.stringify(loginResult.user));
+        if (loginResult.user.role === "admin") navigate("/affiliates");
+        else setRegistered(true);
       } else {
-        setErrors({ general: result.error || "Registration failed" });
+        setErrors({ general: loginResult.error || "Login failed" });
       }
     } catch (err) {
       console.error(err);
