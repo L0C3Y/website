@@ -7,15 +7,11 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
   const { code: affiliateCode } = useContext(AffiliateContext);
   const [loading, setLoading] = useState(false);
 
-  // Safe fetch JSON
-  const safeJsonFetch = async (url, options = {}) => {
+  const safeJsonFetch = async (url, options) => {
     const res = await fetch(url, options);
     const text = await res.text();
-    try {
-      return JSON.parse(text);
-    } catch {
-      throw new Error("Backend returned invalid JSON");
-    }
+    try { return JSON.parse(text); } 
+    catch { throw new Error("Backend returned invalid JSON"); }
   };
 
   const handlePayment = async () => {
@@ -24,10 +20,10 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Login required");
 
-      // 1️⃣ Get Razorpay key
+      // ✅ Public Razorpay key
       const { key } = await safeJsonFetch(`${BACKEND_URL}/api/payments/key`);
 
-      // 2️⃣ Create order
+      // ✅ Create order
       const orderData = await safeJsonFetch(`${BACKEND_URL}/api/payments/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -36,7 +32,6 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
 
       if (!orderData.success) throw new Error(orderData.error || "Order creation failed");
 
-      // 3️⃣ Open Razorpay checkout
       const rzp = new window.Razorpay({
         key,
         amount: orderData.razorpayOrder.amount,
@@ -57,32 +52,20 @@ const EnhancedCheckout = ({ amount, ebookId }) => {
               headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({ ...response, orderId: orderData.order.id }),
             });
-
             if (!verify.success) alert("❌ Payment verification failed");
             else alert("✅ Payment successful!");
-          } catch (err) {
-            alert("❌ Verification error: " + err.message);
-          }
+          } catch (err) { alert("❌ Verification error: " + err.message); }
         },
-        modal: { ondismiss: () => setLoading(false) },
       });
 
       rzp.open();
     } catch (err) {
-      alert("❌ Payment error: " + err.message);
-    } finally {
-      setLoading(false);
-    }
+      alert("❌ Payment failed: " + err.message);
+    } finally { setLoading(false); }
   };
 
   return (
-    <button
-      onClick={handlePayment}
-      disabled={loading}
-      className={`w-full py-3 rounded-lg font-semibold text-lg ${
-        loading ? "bg-gray-600" : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg"
-      }`}
-    >
+    <button onClick={handlePayment} disabled={loading} className={`w-full py-3 rounded-lg font-semibold text-lg ${loading ? "bg-gray-600" : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg"}`}>
       {loading ? "⏳ Processing..." : `💳 Pay ₹${amount}`}
     </button>
   );
