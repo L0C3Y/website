@@ -4,8 +4,6 @@ import FeedbackForm from "../component/FeedbackForm";
 const Feedback = ({ ebookId }) => {
   const [user, setUser] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   // Load logged-in user from localStorage
   useEffect(() => {
@@ -13,7 +11,7 @@ const Feedback = ({ ebookId }) => {
     if (userStr) setUser(JSON.parse(userStr));
   }, []);
 
-  // Normalize API base URL (avoid double slashes)
+  // Normalize API base URL
   const API_URL = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
 
   // Fetch existing feedbacks
@@ -21,18 +19,12 @@ const Feedback = ({ ebookId }) => {
     if (!ebookId) return;
 
     const fetchFeedbacks = async () => {
-      setLoading(true);
-      setError(null);
       try {
         const res = await fetch(`${API_URL}/api/feedbacks/${ebookId}`);
         const data = await res.json();
         if (data.success) setFeedbacks(data.data || []);
-        else setError(data.error || "Failed to load feedbacks");
       } catch (err) {
         console.error("Error fetching feedbacks:", err);
-        setError("Network error while fetching feedbacks");
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -46,11 +38,9 @@ const Feedback = ({ ebookId }) => {
       return;
     }
 
-    setError(null);
-
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/api/feedbacks`, {
+      const res = await fetch(`${API_URL}/api/feedbacks`, {  // ✅ Corrected endpoint
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,40 +50,34 @@ const Feedback = ({ ebookId }) => {
           userId: user.id,
           ebookId,
           message: feedback,
-          userName: name || user.name || "Anonymous",
+          userName: name || "Anonymous",
         }),
       });
 
       const data = await res.json();
 
       if (data.success) {
-        // Append new feedback to list immediately
         setFeedbacks((prev) => [...prev, data.data]);
       } else {
-        setError(data.error || "Failed to submit feedback");
+        alert("❌ Failed to submit feedback: " + (data.error || "Unknown error"));
       }
     } catch (err) {
       console.error("Error submitting feedback:", err);
-      setError("Network error while submitting feedback");
+      alert("❌ Error submitting feedback");
     }
   };
 
   return (
     <div className="feedback-page">
       <h2>User Feedback</h2>
-
-      {error && <p className="error-message">{error}</p>}
-
       <FeedbackForm
         defaultName={user?.name || ""}
         onSubmit={handleFeedbackSubmit}
       />
 
       <h3>All Feedbacks</h3>
-      {loading ? (
-        <p>Loading feedbacks...</p>
-      ) : feedbacks.length === 0 ? (
-        <p>No feedbacks yet. Be the first to leave one!</p>
+      {feedbacks.length === 0 ? (
+        <p>No feedbacks yet.</p>
       ) : (
         feedbacks.map((fb, idx) => (
           <div key={idx} className="feedback-item">

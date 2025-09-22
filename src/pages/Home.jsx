@@ -4,15 +4,22 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/app.css";
 
-// ✅ Correct for Vite
-const BACKEND_URL = import.meta.env.VITE_API_URL;
+// ✅ Production: Ensure trailing slash in backend URL
+const BACKEND_URL = import.meta.env.VITE_API_URL.endsWith("/")
+  ? import.meta.env.VITE_API_URL
+  : import.meta.env.VITE_API_URL + "/";
 
 const Home = () => {
   const navigate = useNavigate();
   const [registered, setRegistered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "default123" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "default123", // default password for auto-login
+  });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -36,7 +43,8 @@ const Home = () => {
     if (!data.name.trim()) newErrors.name = "Name is required";
     if (!data.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(data.email)) newErrors.email = "Enter a valid email";
-    if (data.phone && !/^\+?[\d\s\-\(\)]+$/.test(data.phone)) newErrors.phone = "Enter a valid phone number";
+    if (data.phone && !/^\+?[\d\s\-\(\)]+$/.test(data.phone))
+      newErrors.phone = "Enter a valid phone number";
     return newErrors;
   };
 
@@ -50,7 +58,12 @@ const Home = () => {
     e.preventDefault();
     setLoading(true);
     setErrors({});
-    const data = { ...formData, name: formData.name.trim(), email: formData.email.trim(), phone: formData.phone.trim() };
+    const data = {
+      ...formData,
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+    };
 
     const validationErrors = validateForm(data);
     if (Object.keys(validationErrors).length > 0) {
@@ -60,14 +73,15 @@ const Home = () => {
     }
 
     try {
+      // 1️⃣ Registration attempt
       const res = await fetch(`${BACKEND_URL}api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
       const result = await res.json();
 
+      // 2️⃣ If already registered, auto-login
       if (!result.success && result.error?.toLowerCase().includes("already registered")) {
         const loginRes = await fetch(`${BACKEND_URL}api/auth/login`, {
           method: "POST",
@@ -81,15 +95,17 @@ const Home = () => {
           if (loginResult.user.role === "admin") navigate("/affiliates");
           else setRegistered(true);
         } else setErrors({ general: loginResult.error || "Login failed" });
-      } else if (result.success) {
+      }
+      // 3️⃣ Successful registration
+      else if (result.success) {
         localStorage.setItem("token", result.token);
         localStorage.setItem("user", JSON.stringify(result.user));
         if (result.user.role === "admin") navigate("/affiliates");
         else setRegistered(true);
       } else setErrors({ general: result.error || "Registration failed" });
     } catch (err) {
-      console.error(err);
-      setErrors({ general: "Server error. Try again." });
+      console.error("Production fetch error:", err);
+      setErrors({ general: "Server error. Please try again later." });
     } finally {
       setLoading(false);
     }
