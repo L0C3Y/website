@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import bgv from "../media/bgv.mp4";
 import "../styles/app.css";
 
-// ✅ Correct for Vite
 const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 const Home = () => {
@@ -19,7 +18,6 @@ const Home = () => {
     password: "default123",
   });
 
-  // ---------- Check token / user ----------
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
@@ -37,14 +35,12 @@ const Home = () => {
     }
   }, [navigate]);
 
-  // ---------- Form Validation ----------
   const validateForm = (data) => {
     const newErrors = {};
     if (!data.name.trim()) newErrors.name = "Name is required";
     if (!data.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(data.email)) newErrors.email = "Enter a valid email";
-    if (data.phone && !/^\+?[\d\s\-\(\)]+$/.test(data.phone))
-      newErrors.phone = "Enter a valid phone number";
+    if (data.phone && !/^\+?[\d\s\-\(\)]+$/.test(data.phone)) newErrors.phone = "Enter a valid phone number";
     return newErrors;
   };
 
@@ -54,17 +50,15 @@ const Home = () => {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // ---------- Register / Login ----------
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrors({});
-
     const data = {
+      ...formData,
       name: formData.name.trim(),
       email: formData.email.trim(),
       phone: formData.phone.trim(),
-      password: formData.password,
     };
 
     const validationErrors = validateForm(data);
@@ -75,32 +69,16 @@ const Home = () => {
     }
 
     try {
-      // 1️⃣ Register
-      const registerRes = await fetch(`${BACKEND_URL}api/auth/register`, {
+      // Registration
+      const res = await fetch(`${BACKEND_URL}api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-        }),
+        body: JSON.stringify(data),
       });
+      const result = await res.json();
 
-      const registerResult = await registerRes.json();
-
-      if (registerResult.success) {
-        localStorage.setItem("token", registerResult.token);
-        localStorage.setItem("user", JSON.stringify(registerResult.user));
-        if (registerResult.user.role === "admin") navigate("/affiliates");
-        else setRegistered(true);
-        return;
-      }
-
-      // 2️⃣ If already registered → login
-      if (
-        registerResult.error &&
-        registerResult.error.toLowerCase().includes("already registered")
-      ) {
+      if (result.success) {
+        // Auto-login after registration
         const loginRes = await fetch(`${BACKEND_URL}api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -110,21 +88,36 @@ const Home = () => {
             password: data.password,
           }),
         });
-
         const loginResult = await loginRes.json();
-
         if (loginResult.success) {
           localStorage.setItem("token", loginResult.token);
           localStorage.setItem("user", JSON.stringify(loginResult.user));
           if (loginResult.user.role === "admin") navigate("/affiliates");
           else setRegistered(true);
         } else setErrors({ general: loginResult.error || "Login failed" });
-        return;
+      } else if (result.error?.toLowerCase().includes("already registered")) {
+        // Login existing user
+        const loginRes = await fetch(`${BACKEND_URL}api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            role: "user",
+            identifier: data.email,
+            password: data.password,
+          }),
+        });
+        const loginResult = await loginRes.json();
+        if (loginResult.success) {
+          localStorage.setItem("token", loginResult.token);
+          localStorage.setItem("user", JSON.stringify(loginResult.user));
+          if (loginResult.user.role === "admin") navigate("/affiliates");
+          else setRegistered(true);
+        } else setErrors({ general: loginResult.error || "Login failed" });
+      } else {
+        setErrors({ general: result.error || "Registration failed" });
       }
-
-      setErrors({ general: registerResult.error || "Registration failed" });
     } catch (err) {
-      console.error("Register/Login error:", err);
+      console.error(err);
       setErrors({ general: "Server error. Try again." });
     } finally {
       setLoading(false);
@@ -142,7 +135,6 @@ const Home = () => {
           {!registered ? (
             <form onSubmit={handleRegister} className="register-form" noValidate>
               {errors.general && <div className="general-error">{errors.general}</div>}
-
               <input
                 type="text"
                 name="name"
@@ -152,7 +144,6 @@ const Home = () => {
                 required
               />
               {errors.name && <div className="error-message">{errors.name}</div>}
-
               <input
                 type="email"
                 name="email"
@@ -162,7 +153,6 @@ const Home = () => {
                 required
               />
               {errors.email && <div className="error-message">{errors.email}</div>}
-
               <input
                 type="tel"
                 name="phone"
@@ -171,7 +161,6 @@ const Home = () => {
                 placeholder="Phone (optional)"
               />
               {errors.phone && <div className="error-message">{errors.phone}</div>}
-
               <button type="submit" className="hero-btn" disabled={loading}>
                 {loading ? "Processing..." : "Get Free PDF"}
               </button>
