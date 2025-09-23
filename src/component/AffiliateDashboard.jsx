@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import "../styles/cards.css";
-import toast, { Toaster } from "react-hot-toast"; // toast notifications
+import toast, { Toaster } from "react-hot-toast";
 import copy from "copy-to-clipboard";
 
-
 const API_BASE = import.meta.env.VITE_API_URL.replace(/\/+$/, "");
-
 
 const AffiliateDashboard = () => {
   const [user, setUser] = useState(null);
@@ -13,10 +11,8 @@ const AffiliateDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-
   const [allAffiliates, setAllAffiliates] = useState([]);
   const [affiliateData, setAffiliateData] = useState(null);
-
 
   const [loginForm, setLoginForm] = useState({
     role: "admin",
@@ -24,7 +20,6 @@ const AffiliateDashboard = () => {
     password: "",
     email: "",
   });
-
 
   const [affiliateForm, setAffiliateForm] = useState({
     id: null,
@@ -34,9 +29,7 @@ const AffiliateDashboard = () => {
   });
   const [editMode, setEditMode] = useState(false);
 
-
   const [pagination, setPagination] = useState({ page: 1, limit: 10 });
-
 
   // ------------------------
   // Login Handler
@@ -46,20 +39,17 @@ const AffiliateDashboard = () => {
     setLoading(true);
     setError(null);
 
-
     try {
       let url = "";
       let body = {};
 
-
       if (loginForm.role === "admin") {
-        url = `${API_BASE}/api/affiliates/admin-login`;
+        url = `${API_BASE}/admin-login`;
         body = { username: loginForm.identifier, password: loginForm.password };
       } else {
-        url = `${API_BASE}/api/affiliates/affiliate-login`;
+        url = `${API_BASE}/affiliate-login`;
         body = { email: loginForm.email };
       }
-
 
       const res = await fetch(url, {
         method: "POST",
@@ -67,11 +57,11 @@ const AffiliateDashboard = () => {
         body: JSON.stringify(body),
       });
 
-
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Login failed");
 
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || `Server responded with ${res.status}`);
+      }
 
       setUser(data.user);
       setToken(data.token);
@@ -86,7 +76,6 @@ const AffiliateDashboard = () => {
     }
   };
 
-
   // ------------------------
   // Fetch dashboard data
   // ------------------------
@@ -94,17 +83,16 @@ const AffiliateDashboard = () => {
     if (!loggedUser || !authToken) return;
     setLoading(true);
 
-
     try {
-      const res = await fetch(`${API_BASE}/api/affiliates`, {
+      const res = await fetch(`${API_BASE}`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
-
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Failed to fetch data");
 
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || `Server responded with ${res.status}`);
+      }
 
       if (loggedUser.role === "admin") setAllAffiliates(data.data || []);
       if (loggedUser.role === "affiliate") setAffiliateData(data.data || {});
@@ -116,7 +104,6 @@ const AffiliateDashboard = () => {
       setLoading(false);
     }
   };
-
 
   // ------------------------
   // Logout
@@ -130,7 +117,6 @@ const AffiliateDashboard = () => {
     toast.success("Logged out successfully");
   };
 
-
   // ------------------------
   // Admin: Create / Update Affiliate
   // ------------------------
@@ -138,22 +124,20 @@ const AffiliateDashboard = () => {
     e.preventDefault();
     if (!user || user.role !== "admin") return;
 
-
     if (!affiliateForm.name || !affiliateForm.email) {
       toast.error("Name and Email are required");
       return;
     }
+
     if (affiliateForm.commissionRate < 0 || affiliateForm.commissionRate > 1) {
       toast.error("Commission rate must be between 0 and 1");
       return;
     }
 
-
     const url = editMode
-      ? `${API_BASE}/api/affiliates/${affiliateForm.id}`
-      : `${API_BASE}/api/affiliates/create`;
+      ? `${API_BASE}/${affiliateForm.id}`
+      : `${API_BASE}/create`;
     const method = editMode ? "PUT" : "POST";
-
 
     try {
       const res = await fetch(url, {
@@ -169,11 +153,8 @@ const AffiliateDashboard = () => {
         }),
       });
 
-
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Operation failed");
-
+      if (!res.ok || !data.success) throw new Error(data.error || "Operation failed");
 
       toast.success(editMode ? "Affiliate updated!" : "Affiliate created!");
       setAffiliateForm({ id: null, name: "", email: "", commissionRate: 0.2 });
@@ -185,7 +166,6 @@ const AffiliateDashboard = () => {
     }
   };
 
-
   const handleEdit = (aff) => {
     setAffiliateForm({
       id: aff.id,
@@ -196,20 +176,16 @@ const AffiliateDashboard = () => {
     setEditMode(true);
   };
 
-
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure? This will soft delete.")) return;
     try {
-      const res = await fetch(`${API_BASE}/api/affiliates/${id}`, {
+      const res = await fetch(`${API_BASE}/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
-
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Delete failed");
-
+      if (!res.ok || !data.success) throw new Error(data.error || "Delete failed");
 
       toast.success("Affiliate deleted!");
       fetchDashboard();
@@ -219,15 +195,10 @@ const AffiliateDashboard = () => {
     }
   };
 
-
-  // ------------------------
-  // Copy referral link
-  // ------------------------
   const copyReferral = (link) => {
     copy(link);
     toast.success("Referral link copied!");
   };
-
 
   // ------------------------
   // Pagination helpers
@@ -237,158 +208,155 @@ const AffiliateDashboard = () => {
     pagination.page * pagination.limit
   );
 
-
   const totalPages = Math.ceil(allAffiliates.length / pagination.limit);
-
 
   // ------------------------
   // UI
   // ------------------------
-  if (!user) return (
-    <div className="affiliate-dashboard login-page">
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
-        <select
-          value={loginForm.role}
-          onChange={(e) => setLoginForm({ ...loginForm, role: e.target.value })}
-        >
-          <option value="admin">Admin</option>
-          <option value="affiliate">Affiliate</option>
-        </select>
-        {loginForm.role === "admin" ? (
-          <>
+  if (!user)
+    return (
+      <div className="affiliate-dashboard login-page">
+        <h2>Login</h2>
+        <form onSubmit={handleLogin}>
+          <select
+            value={loginForm.role}
+            onChange={(e) => setLoginForm({ ...loginForm, role: e.target.value })}
+          >
+            <option value="admin">Admin</option>
+            <option value="affiliate">Affiliate</option>
+          </select>
+          {loginForm.role === "admin" ? (
+            <>
+              <input
+                placeholder="Admin Username"
+                value={loginForm.identifier}
+                onChange={(e) =>
+                  setLoginForm({ ...loginForm, identifier: e.target.value })
+                }
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={loginForm.password}
+                onChange={(e) =>
+                  setLoginForm({ ...loginForm, password: e.target.value })
+                }
+                required
+              />
+            </>
+          ) : (
             <input
-              placeholder="Admin Username"
-              value={loginForm.identifier}
-              onChange={(e) => setLoginForm({ ...loginForm, identifier: e.target.value })}
+              type="email"
+              placeholder="Affiliate Email"
+              value={loginForm.email}
+              onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
               required
             />
-            <input
-              type="password"
-              placeholder="Password"
-              value={loginForm.password}
-              onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-              required
-            />
-          </>
-        ) : (
+          )}
+          <button type="submit">{loading ? "Logging in..." : "Login"}</button>
+        </form>
+        {error && <p className="error-message">{error}</p>}
+        <Toaster />
+      </div>
+    );
+
+  if (user.role === "admin")
+    return (
+      <div className="affiliate-dashboard">
+        <div className="top-bar">
+          <h2>Admin Dashboard</h2>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
+
+        <h3>All Affiliates</h3>
+        <table className="affiliate-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Commission</th>
+              <th>Sales</th>
+              <th>Revenue</th>
+              <th>Commission Earned</th>
+              <th>Referral Link</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedAffiliates.map((aff) => (
+              <tr key={aff.id}>
+                <td>{aff.name}</td>
+                <td>{aff.email}</td>
+                <td>{aff.commission_rate}</td>
+                <td>{aff.sales_count}</td>
+                <td>₹{aff.total_revenue}</td>
+                <td>₹{aff.total_commission}</td>
+                <td>
+                  <button onClick={() => copyReferral(aff.referral_link)}>Copy Link</button>
+                </td>
+                <td>
+                  <button onClick={() => handleEdit(aff)}>✏️</button>
+                  <button onClick={() => handleDelete(aff.id)}>🗑️</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="pagination">
+          <button
+            onClick={() =>
+              setPagination({ ...pagination, page: Math.max(1, pagination.page - 1) })
+            }
+            disabled={pagination.page === 1}
+          >
+            Previous
+          </button>
+          <span>
+            Page {pagination.page} of {totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setPagination({ ...pagination, page: Math.min(totalPages, pagination.page + 1) })
+            }
+            disabled={pagination.page === totalPages}
+          >
+            Next
+          </button>
+        </div>
+
+        <h3>{editMode ? "Edit Affiliate" : "Create New Affiliate"}</h3>
+        <form onSubmit={handleSubmitAffiliate}>
           <input
-            type="email"
-            placeholder="Affiliate Email"
-            value={loginForm.email}
-            onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+            placeholder="Name"
+            value={affiliateForm.name}
+            onChange={(e) => setAffiliateForm({ ...affiliateForm, name: e.target.value })}
             required
           />
-        )}
-        <button type="submit">{loading ? "Logging in..." : "Login"}</button>
-      </form>
-      {error && <p className="error-message">{error}</p>}
-      <Toaster />
-    </div>
-  );
-
-
-  // ------------------------
-  // Admin Dashboard
-  // ------------------------
-  if (user.role === "admin") return (
-    <div className="affiliate-dashboard">
-      <div className="top-bar">
-        <h2>Admin Dashboard</h2>
-        <button onClick={handleLogout}>Logout</button>
+          <input
+            placeholder="Email"
+            type="email"
+            value={affiliateForm.email}
+            onChange={(e) => setAffiliateForm({ ...affiliateForm, email: e.target.value })}
+            required
+          />
+          <input
+            placeholder="Commission Rate (0-1)"
+            type="number"
+            step="0.01"
+            value={affiliateForm.commissionRate}
+            onChange={(e) =>
+              setAffiliateForm({ ...affiliateForm, commissionRate: parseFloat(e.target.value) })
+            }
+            required
+          />
+          <button type="submit">{editMode ? "Update" : "Create"}</button>
+        </form>
+        <Toaster />
       </div>
-<h3>All Affiliates</h3>
-      <table className="affiliate-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Commission</th>
-            <th>Sales</th>
-            <th>Revenue</th>
-            <th>Commission Earned</th>
-            <th>Referral Link</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedAffiliates.map((aff) => (
-            <tr key={aff.id}>
-              <td>{aff.name}</td>
-              <td>{aff.email}</td>
-              <td>{aff.commission_rate}</td>
-              <td>{aff.sales_count}</td>
-              <td>₹{aff.total_revenue}</td>
-              <td>₹{aff.total_commission}</td>
-              <td>
-                <button onClick={() => copyReferral(aff.referral_link)}>Copy Link</button>
-              </td>
-              <td>
-                <button onClick={() => handleEdit(aff)}>✏️</button>
-                <button onClick={() => handleDelete(aff.id)}>🗑️</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    );
 
-
-      <div className="pagination">
-        <button
-          onClick={() => setPagination({ ...pagination, page: Math.max(1, pagination.page - 1) })}
-          disabled={pagination.page === 1}
-        >
-          Previous
-        </button>
-        <span>
-          Page {pagination.page} of {totalPages}
-        </span>
-        <button
-          onClick={() =>
-            setPagination({ ...pagination, page: Math.min(totalPages, pagination.page + 1) })
-          }
-          disabled={pagination.page === totalPages}
-        >
-          Next
-        </button>
-      </div>
-
-
-      <h3>{editMode ? "Edit Affiliate" : "Create New Affiliate"}</h3>
-      <form onSubmit={handleSubmitAffiliate}>
-        <input
-          placeholder="Name"
-          value={affiliateForm.name}
-          onChange={(e) => setAffiliateForm({ ...affiliateForm, name: e.target.value })}
-          required
-        />
-        <input
-          placeholder="Email"
-          type="email"
-          value={affiliateForm.email}
-          onChange={(e) => setAffiliateForm({ ...affiliateForm, email: e.target.value })}
-          required
-        />
-        <input
-          placeholder="Commission Rate (0-1)"
-          type="number"
-          step="0.01"
-          value={affiliateForm.commissionRate}
-          onChange={(e) =>
-            setAffiliateForm({ ...affiliateForm, commissionRate: parseFloat(e.target.value) })
-          }
-          required
-        />
-        <button type="submit">{editMode ? "Update" : "Create"}</button>
-      </form>
-      <Toaster />
-    </div>
-  );
-
-
-  // ------------------------
-  // Affiliate Dashboard
-  // ------------------------
   if (user.role === "affiliate")
     return (
       <div className="affiliate-dashboard">
@@ -396,7 +364,6 @@ const AffiliateDashboard = () => {
           <h2>Affiliate Dashboard</h2>
           <button onClick={handleLogout}>Logout</button>
         </div>
-
 
         {affiliateData && (
           <>
@@ -419,6 +386,5 @@ const AffiliateDashboard = () => {
       </div>
     );
 };
-
 
 export default AffiliateDashboard;
