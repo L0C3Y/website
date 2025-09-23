@@ -19,7 +19,6 @@ const AffiliateDashboard = () => {
     identifier: "",
     password: "",
     email: "",
-    name: "",
   });
 
   const [affiliateForm, setAffiliateForm] = useState({
@@ -33,6 +32,19 @@ const AffiliateDashboard = () => {
   const [pagination, setPagination] = useState({ page: 1, limit: 10 });
 
   // ------------------------
+  // Load user from localStorage
+  // ------------------------
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const storedToken = localStorage.getItem("token");
+    if (storedUser && storedToken) {
+      setUser(JSON.parse(storedUser));
+      setToken(storedToken);
+      fetchDashboard(JSON.parse(storedUser), storedToken);
+    }
+  }, []);
+
+  // ------------------------
   // Login Handler
   // ------------------------
   const handleLogin = async (e) => {
@@ -41,21 +53,15 @@ const AffiliateDashboard = () => {
     setError(null);
 
     try {
-      const url = `${API_BASE}/api/auth/login`;
+      let url = "";
       let body = {};
 
       if (loginForm.role === "admin") {
-        body = {
-          role: "admin",
-          identifier: loginForm.identifier,
-          password: loginForm.password,
-        };
-      } else if (loginForm.role === "affiliate") {
-        body = {
-          role: "affiliate",
-          identifier: loginForm.email,
-          name: loginForm.name || loginForm.email,
-        };
+        url = `${API_BASE}/admin-login`;
+        body = { username: loginForm.identifier, password: loginForm.password };
+      } else {
+        url = `${API_BASE}/affiliate-login`;
+        body = { email: loginForm.email };
       }
 
       const res = await fetch(url, {
@@ -69,6 +75,8 @@ const AffiliateDashboard = () => {
 
       setUser(data.user);
       setToken(data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", data.token);
       fetchDashboard(data.user, data.token);
       toast.success("Logged in successfully!");
     } catch (err) {
@@ -113,7 +121,9 @@ const AffiliateDashboard = () => {
     setToken(null);
     setAllAffiliates([]);
     setAffiliateData(null);
-    setLoginForm({ role: "admin", identifier: "", password: "", email: "", name: "" });
+    setLoginForm({ role: "admin", identifier: "", password: "", email: "" });
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     toast.success("Logged out successfully");
   };
 
@@ -245,21 +255,13 @@ const AffiliateDashboard = () => {
               />
             </>
           ) : (
-            <>
-              <input
-                type="email"
-                placeholder="Affiliate Email"
-                value={loginForm.email}
-                onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                required
-              />
-              <input
-                type="text"
-                placeholder="Affiliate Name (optional)"
-                value={loginForm.name}
-                onChange={(e) => setLoginForm({ ...loginForm, name: e.target.value })}
-              />
-            </>
+            <input
+              type="email"
+              placeholder="Affiliate Email"
+              value={loginForm.email}
+              onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+              required
+            />
           )}
           <button type="submit">{loading ? "Logging in..." : "Login"}</button>
         </form>
