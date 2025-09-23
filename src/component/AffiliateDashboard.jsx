@@ -19,6 +19,7 @@ const AffiliateDashboard = () => {
     identifier: "",
     password: "",
     email: "",
+    name: "",
   });
 
   const [affiliateForm, setAffiliateForm] = useState({
@@ -40,15 +41,21 @@ const AffiliateDashboard = () => {
     setError(null);
 
     try {
-      let url = "";
+      const url = `${API_BASE}/api/auth/login`;
       let body = {};
 
       if (loginForm.role === "admin") {
-        url = `${API_BASE}/admin-login`;
-        body = { username: loginForm.identifier, password: loginForm.password };
-      } else {
-        url = `${API_BASE}/affiliate-login`;
-        body = { email: loginForm.email };
+        body = {
+          role: "admin",
+          identifier: loginForm.identifier,
+          password: loginForm.password,
+        };
+      } else if (loginForm.role === "affiliate") {
+        body = {
+          role: "affiliate",
+          identifier: loginForm.email,
+          name: loginForm.name || loginForm.email,
+        };
       }
 
       const res = await fetch(url, {
@@ -58,10 +65,7 @@ const AffiliateDashboard = () => {
       });
 
       const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || `Server responded with ${res.status}`);
-      }
+      if (!res.ok || !data.success) throw new Error(data.error || "Login failed");
 
       setUser(data.user);
       setToken(data.token);
@@ -87,12 +91,8 @@ const AffiliateDashboard = () => {
       const res = await fetch(`${API_BASE}/api/affiliates`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
-
       const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || `Server responded with ${res.status}`);
-      }
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed to fetch dashboard");
 
       if (loggedUser.role === "admin") setAllAffiliates(data.data || []);
       if (loggedUser.role === "affiliate") setAffiliateData(data.data || {});
@@ -113,7 +113,7 @@ const AffiliateDashboard = () => {
     setToken(null);
     setAllAffiliates([]);
     setAffiliateData(null);
-    setLoginForm({ role: "admin", identifier: "", password: "", email: "" });
+    setLoginForm({ role: "admin", identifier: "", password: "", email: "", name: "" });
     toast.success("Logged out successfully");
   };
 
@@ -134,9 +134,9 @@ const AffiliateDashboard = () => {
       return;
     }
 
-     const url = editMode
-   ? `${API_BASE}/api/affiliates/${affiliateForm.id}`
-   : `${API_BASE}/api/affiliates/create`;
+    const url = editMode
+      ? `${API_BASE}/api/affiliates/${affiliateForm.id}`
+      : `${API_BASE}/api/affiliates/create`;
     const method = editMode ? "PUT" : "POST";
 
     try {
@@ -179,11 +179,10 @@ const AffiliateDashboard = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure? This will soft delete.")) return;
     try {
-      const res = await fetch(`${API_BASE}/${id}`, {
+      const res = await fetch(`${API_BASE}/api/affiliates/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Delete failed");
 
@@ -246,13 +245,21 @@ const AffiliateDashboard = () => {
               />
             </>
           ) : (
-            <input
-              type="email"
-              placeholder="Affiliate Email"
-              value={loginForm.email}
-              onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-              required
-            />
+            <>
+              <input
+                type="email"
+                placeholder="Affiliate Email"
+                value={loginForm.email}
+                onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Affiliate Name (optional)"
+                value={loginForm.name}
+                onChange={(e) => setLoginForm({ ...loginForm, name: e.target.value })}
+              />
+            </>
           )}
           <button type="submit">{loading ? "Logging in..." : "Login"}</button>
         </form>
