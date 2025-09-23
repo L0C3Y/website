@@ -84,7 +84,7 @@ const AffiliateDashboard = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}`, {
+      const res = await fetch(`${API_BASE}/api/affiliates`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -134,9 +134,9 @@ const AffiliateDashboard = () => {
       return;
     }
 
-    const url = editMode
-      ? `${API_BASE}/${affiliateForm.id}`
-      : `${API_BASE}/create`;
+     const url = editMode
+   ? `${API_BASE}/api/affiliates/${affiliateForm.id}`
+   : `${API_BASE}/api/affiliates/create`;
     const method = editMode ? "PUT" : "POST";
 
     try {
