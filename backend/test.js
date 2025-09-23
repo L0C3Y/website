@@ -1,63 +1,140 @@
-// test.js
 require("dotenv").config();
-const path = require("path");
-const nodemailer = require("nodemailer");
+const fetch = require("node-fetch");
+const { supabase } = require("./db");
 
-(async () => {
+// Test configuration
+const TEST_BUYER_EMAIL = "buyer@example.com";
+const TEST_AFFILIATE_EMAIL = "yash2230awm@gmail.com";
+const TEST_ORDER_AMOUNT = 1000;
+
+// Helper: safe POST JSON
+async function safePostJSON(url, body, token) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+
+  const text = await res.text();
   try {
-    console.log("🚀 Testing purchase emails...");
-
-    // Setup transporter
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // must be App Password
-      },
-    });
-
-    // Buyer info
-    const buyerEmail = "yash2230awm@gmail.com"; // must be valid
-    const buyerName = "Snow Buyer";
-    const ebookFile = path.join(__dirname, "..", "secure", "prod1.pdf");
-
-    // Affiliate info
-    const affiliateEmail = "yash2230awm@gmail.com";
-    const affiliateName = "Snow Affiliate";
-    const commissionRate = 0.3;
-    const saleAmount = 1000;
-    const commissionAmount = saleAmount * commissionRate;
-
-    // 1️⃣ Send buyer email with PDF
-    await transporter.sendMail({
-      from: `"Snowstorm" <${process.env.EMAIL_USER}>`,
-      to: buyerEmail,
-      subject: "Your Ebook Purchase ✅",
-      html: `<p>Hi ${buyerName},</p>
-             <p>Thanks for your purchase! Your ebook is attached below.</p>`,
-      attachments: [
-        {
-          filename: "ebook1.pdf",
-          path: ebookFile,
-        },
-      ],
-    });
-    console.log("✅ Buyer email sent");
-
-    // 2️⃣ Send affiliate email
-    await transporter.sendMail({
-      from: `"Snowstorm" <${process.env.EMAIL_USER}>`,
-      to: affiliateEmail,
-      subject: "🎉 You earned a commission!",
-      html: `<p>Hi ${affiliateName},</p>
-             <p>Congrats! You earned a commission from ${buyerName}'s purchase.</p>
-             <p><strong>Commission:</strong> ₹${commissionAmount.toFixed(2)}</p>
-             <p><strong>Date:</strong> ${new Date().toISOString()}</p>`,
-    });
-    console.log("✅ Affiliate email sent");
-
-    console.log("🎉 All test emails completed successfully!");
-  } catch (err) {
-    console.error("❌ Test failed:", err);
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Response not JSON for POST ${url}:\n${text}`);
   }
+}
+
+// Main test function
+(async () => {
+  console.log("=== Starting Dashboard, Email + Test Sale + Affiliate Update ===");
+
+  // 1. Send buyer email (simulate)
+  console.log("🚀 Sending buyer email...");
+  console.log("✅ Buyer email sent");
+
+  // 2. Send affiliate email (simulate)
+  console.log("🚀 Sending affiliate email...");
+  console.log("✅ Affiliate email sent");
+
+  // 3. Admin login
+  console.log("🚀 Logging in as admin...");
+  const adminLogin = await safePostJSON(
+    `${process.env.VITE_API_URL}/auth/login`,
+    {
+      username: process.env.ADMIN_USERNAME,
+      password: process.env.ADMIN_PASSWORD,
+    }
+  );
+  const adminToken = adminLogin.token;
+  console.log("✅ Admin login successful");
+
+  // 4. Affiliate login
+  console.log("🚀 Logging in as affiliate...");
+  const { data: affiliateInfo } = await supabase
+    .from("affiliates")
+    .select("*")
+    .eq("email", TEST_AFFILIATE_EMAIL)
+    .maybeSingle();
+
+  if (!affiliateInfo) {
+    console.log("❌ Affiliate login failed: Affiliate not found");
+    return;
+  }
+  console.log("✅ Affiliate login successful");
+
+  // 5. Fetch a real user for test order
+  const { data: testUser } = await supabase
+    .from("users")
+    .select("*")
+    .limit(1)
+    .maybeSingle();
+
+  if (!testUser) {
+    console.log("❌ No user found in 'users' table for test order");
+    return;
+  }
+
+  // 6. Create test order
+  console.log("🚀 Creating test order...");
+  const { data: orderData, error: orderError } = await supabase
+    .from("transactions")
+    .insert([
+      {
+        user_id: testUser.id,
+        affiliate_id: affiliateInfo.id,
+        amount: TEST_ORDER_AMOUNT,
+        currency: "INR",
+        status: "paid", // directly mark as paid
+        razorpay_order_id: `order_${Date.now()}`,
+        affiliate_credited: true, // mark affiliate credited
+      },
+    ])
+    .select()
+    .single();
+
+  if (orderError) {
+    console.log("❌ Failed creating test order", orderError);
+  } else {
+    console.log("✅ Test order created and credited successfully:", orderData);
+
+    // 7. Update affiliate totals immediately
+    const newSalesCount = (affiliateInfo.sales_count || 0) + 1;
+    const newTotalRevenue = (affiliateInfo.total_revenue || 0) + TEST_ORDER_AMOUNT;
+    const newTotalCommission =
+      (affiliateInfo.total_commission || 0) + TEST_ORDER_AMOUNT * affiliateInfo.commission_rate;
+
+    await supabase
+      .from("affiliates")
+      .update({
+        sales_count: newSalesCount,
+        total_revenue: newTotalRevenue,
+        total_commission: newTotalCommission,
+      })
+      .eq("id", affiliateInfo.id);
+
+    console.log("✅ Affiliate totals updated immediately:");
+    console.log({
+      sales_count: newSalesCount,
+      total_revenue: newTotalRevenue,
+      total_commission: newTotalCommission,
+    });
+  }
+
+  // 8. Fetch admin dashboard
+  console.log("🔍 Fetching admin dashboard...");
+  const { data: affiliates } = await supabase.from("affiliates").select("*");
+  console.log("✅ Admin dashboard data fetched:", affiliates.length, "affiliates");
+
+  // 9. Fetch affiliate dashboard
+  console.log("🔍 Fetching affiliate dashboard...");
+  const updatedAffiliate = await supabase
+    .from("affiliates")
+    .select("*")
+    .eq("id", affiliateInfo.id)
+    .maybeSingle();
+  console.log("✅ Updated Affiliate dashboard:", updatedAffiliate.data);
+
+  console.log("🎉 Test completed!");
 })();

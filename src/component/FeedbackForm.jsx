@@ -64,7 +64,7 @@ const FeedbackForm = ({ defaultName = "" }) => {
         </button>
       </form>
 
-      {submitted && <p className="feedback-success">✅ Thanks for your feedback!</p>}
+      {submitted && <p className="feedback-success">✅ Thanks for your Feedback!</p>}
       {error && <p className="feedback-error">❌ {error}</p>}
     </div>
   );
