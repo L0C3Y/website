@@ -1,6 +1,6 @@
 // pages/upcoming.jsx
 import React, { useState } from "react";
-import UpcomingCard from "../components/UpcomingCard"; // adjust path if needed
+import UpcomingCard from "../component/UpcomingCard"; // adjust path if needed
 
 const ebooks = [
   {
