@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import "../styles/cards.css";
 import toast, { Toaster } from "react-hot-toast";
 import copy from "copy-to-clipboard";
+import "../styles/cards.css";
 
 const API_BASE = import.meta.env.VITE_API_URL.replace(/\/+$/, "");
 
@@ -18,7 +18,7 @@ const AffiliateDashboard = () => {
     role: "admin",
     identifier: "",
     password: "",
-    email: "",
+    name: "",
   });
 
   const [affiliateForm, setAffiliateForm] = useState({
@@ -31,9 +31,7 @@ const AffiliateDashboard = () => {
 
   const [pagination, setPagination] = useState({ page: 1, limit: 10 });
 
-  // ------------------------
   // Load user from localStorage
-  // ------------------------
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
@@ -44,30 +42,22 @@ const AffiliateDashboard = () => {
     }
   }, []);
 
-  // ------------------------
-  // Login Handler
-  // ------------------------
+  // Login handler
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      let url = "";
-      let body = {};
-
-      if (loginForm.role === "admin") {
-        url = `${API_BASE}/admin-login`;
-        body = { username: loginForm.identifier, password: loginForm.password };
-      } else {
-        url = `${API_BASE}/affiliate-login`;
-        body = { email: loginForm.email };
-      }
-
-      const res = await fetch(url, {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          role: loginForm.role,
+          identifier: loginForm.identifier || loginForm.email,
+          password: loginForm.password,
+          name: loginForm.name || undefined,
+        }),
       });
 
       const data = await res.json();
@@ -77,8 +67,9 @@ const AffiliateDashboard = () => {
       setToken(data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
+
+      toast.success("✅ Logged in successfully!");
       fetchDashboard(data.user, data.token);
-      toast.success("Logged in successfully!");
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -88,9 +79,7 @@ const AffiliateDashboard = () => {
     }
   };
 
-  // ------------------------
   // Fetch dashboard data
-  // ------------------------
   const fetchDashboard = async (loggedUser = user, authToken = token) => {
     if (!loggedUser || !authToken) return;
     setLoading(true);
@@ -100,6 +89,7 @@ const AffiliateDashboard = () => {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       const data = await res.json();
+
       if (!res.ok || !data.success) throw new Error(data.error || "Failed to fetch dashboard");
 
       if (loggedUser.role === "admin") setAllAffiliates(data.data || []);
@@ -113,9 +103,7 @@ const AffiliateDashboard = () => {
     }
   };
 
-  // ------------------------
   // Logout
-  // ------------------------
   const handleLogout = () => {
     setUser(null);
     setToken(null);
@@ -127,9 +115,7 @@ const AffiliateDashboard = () => {
     toast.success("Logged out successfully");
   };
 
-  // ------------------------
   // Admin: Create / Update Affiliate
-  // ------------------------
   const handleSubmitAffiliate = async (e) => {
     e.preventDefault();
     if (!user || user.role !== "admin") return;
@@ -209,9 +195,7 @@ const AffiliateDashboard = () => {
     toast.success("Referral link copied!");
   };
 
-  // ------------------------
   // Pagination helpers
-  // ------------------------
   const paginatedAffiliates = allAffiliates.slice(
     (pagination.page - 1) * pagination.limit,
     pagination.page * pagination.limit
@@ -220,7 +204,7 @@ const AffiliateDashboard = () => {
   const totalPages = Math.ceil(allAffiliates.length / pagination.limit);
 
   // ------------------------
-  // UI
+  // UI Rendering
   // ------------------------
   if (!user)
     return (
@@ -258,8 +242,10 @@ const AffiliateDashboard = () => {
             <input
               type="email"
               placeholder="Affiliate Email"
-              value={loginForm.email}
-              onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+              value={loginForm.identifier}
+              onChange={(e) =>
+                setLoginForm({ ...loginForm, identifier: e.target.value })
+              }
               required
             />
           )}
@@ -302,7 +288,9 @@ const AffiliateDashboard = () => {
                 <td>₹{aff.total_revenue}</td>
                 <td>₹{aff.total_commission}</td>
                 <td>
-                  <button onClick={() => copyReferral(aff.referral_link)}>Copy Link</button>
+                  <button onClick={() => copyReferral(aff.referral_link)}>
+                    Copy Link
+                  </button>
                 </td>
                 <td>
                   <button onClick={() => handleEdit(aff)}>✏️</button>
