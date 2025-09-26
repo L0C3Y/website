@@ -1,14 +1,14 @@
 // pages/upcoming.jsx
 import React, { useState } from "react";
 import UpcomingCard from "../component/UpcomingCard"; // adjust path if needed
-
+import c from "../../public/calis.png"; // sample cover image
 const ebooks = [
   {
     id: 3,
     title: "Calisthenics GuideBook",
     description: "Learn bodyweight exercises and build strength anywhere.",
-    cover: "/public/calis.png",
-    releaseDate: "2025-12-05",
+    cover: {c},
+    releaseDate: "2025-10-11",
   }
 ];
 
