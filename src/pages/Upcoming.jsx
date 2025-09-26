@@ -1,14 +1,32 @@
 // pages/upcoming.jsx
-import React from "react";
+import React, { useState } from "react";
+import UpcomingCard from "../components/UpcomingCard"; // adjust path if needed
+
+const ebooks = [
+  {
+    id: 3,
+    title: "Calisthenics GuideBook",
+    description: "Learn bodyweight exercises and build strength anywhere.",
+    cover: "/public/calis.png",
+    releaseDate: "2025-12-05",
+  }
+];
 
 export default function Upcoming() {
+  const [registrations, setRegistrations] = useState([]);
+
+  const handleRegister = (email, ebookId) => {
+    setRegistrations((prev) => [...prev, { email, ebookId }]);
+    console.log(`Registered ${email} for ebook ${ebookId}`);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="text-center p-8 bg-white rounded-2xl shadow-md">
-        <h1 className="text-4xl font-bold mb-4">🚧 Coming Soon 🚧</h1>
-        <p className="text-lg text-gray-600">
-          This page is under construction. Stay tuned for updates.
-        </p>
+    <div className="min-h-screen bg-gray-100 py-12 px-4">
+      <h1 className="text-4xl font-bold text-center mb-10">🚀 Upcoming Ebooks 🚀</h1>
+      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+        {ebooks.map((ebook) => (
+          <UpcomingCard key={ebook.id} ebook={ebook} onRegister={handleRegister} />
+        ))}
       </div>
     </div>
   );
