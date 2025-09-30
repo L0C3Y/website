@@ -52,7 +52,7 @@ const AffiliateTracker = ({ children }) => {
 // ---- Navbar & Footer ----
 const Navbar = () => (
   <nav className="nav">
-    <Link to="/" className="logo">Snowstrom</Link>
+    <Link to="/" className="logo">Snowstm</Link>
     <div className="nav-links">
       <Link to="/ebooks">Ebooks</Link>
       <Link to="/upcoming">Upcoming</Link>
