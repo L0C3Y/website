@@ -1,7 +1,7 @@
 // pages/upcoming.jsx
 import React, { useState } from "react";
 import UpcomingCard from "../component/UpcomingCard"; // adjust path if needed
-import c from "../../public/calis.png"; // sample cover image
+import c from "../../public/calisupcoming.png"; // sample cover image
 const ebooks = [
   {
     id: 3,
