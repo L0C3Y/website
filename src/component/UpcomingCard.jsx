@@ -1,13 +1,12 @@
-// components/UpcomingCard.jsx
 import React, { useState, useEffect } from "react";
-import "../styles/cards.css"; // keep your styles or upgrade with Tailwind
+import Image from "next/image";
 
 const UpcomingCard = ({ ebook, onRegister }) => {
   const [email, setEmail] = useState("");
   const [registered, setRegistered] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
 
-  // Countdown timer logic
+  // Countdown timer
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -43,16 +42,27 @@ const UpcomingCard = ({ ebook, onRegister }) => {
   };
 
   return (
-    <div className="upcoming-card bg-white shadow-lg rounded-xl overflow-hidden flex flex-col items-center p-4">
-      <div className="upcoming-cover mb-4 w-full">
-        <img src={ebook.cover} alt={ebook.title} className="w-full h-64 object-cover rounded-lg" />
+    <div className="bg-white shadow-lg rounded-xl overflow-hidden flex flex-col items-center p-4">
+      {/* Poster */}
+      <div className="w-full mb-4">
+        <Image
+          src={ebook.cover}
+          alt={ebook.title}
+          width={400}
+          height={256}
+          className="rounded-lg object-cover w-full h-64"
+        />
       </div>
 
+      {/* Content */}
       <h3 className="text-xl font-bold text-center mb-2">{ebook.title}</h3>
       <p className="text-gray-600 text-center mb-2">{ebook.description}</p>
-      <p className="text-gray-500 text-sm mb-2">Coming on: {ebook.releaseDate}</p>
+      <p className="text-gray-500 text-sm mb-2">
+        Coming on: {ebook.releaseDate}
+      </p>
       <p className="text-red-500 font-semibold mb-4">{timeLeft}</p>
 
+      {/* Register */}
       {!registered ? (
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-2">
           <input
@@ -71,7 +81,9 @@ const UpcomingCard = ({ ebook, onRegister }) => {
           </button>
         </form>
       ) : (
-        <p className="text-green-600 font-semibold mt-2">✔ Registered! You’ll get 30% off.</p>
+        <p className="text-green-600 font-semibold mt-2">
+          ✔ Registered! You’ll get 30% off.
+        </p>
       )}
     </div>
   );
