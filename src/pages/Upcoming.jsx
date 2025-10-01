@@ -18,6 +18,17 @@ export default function Upcoming() {
   const [email, setEmail] = useState("");
   const [registeredEbooks, setRegisteredEbooks] = useState({});
 
+  // Load registration info from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("registeredEbooks");
+    if (saved) setRegisteredEbooks(JSON.parse(saved));
+  }, []);
+
+  // Save registration info to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("registeredEbooks", JSON.stringify(registeredEbooks));
+  }, [registeredEbooks]);
+
   // Check if email already registered
   const checkRegistration = async (email, ebookId) => {
     if (!email) return false;
@@ -31,14 +42,13 @@ export default function Upcoming() {
     return data?.length > 0;
   };
 
-  // Generate a unique code for the ebook
+  // Generate unique code
   const generateUniqueCode = async (ebookId) => {
     let code;
     let exists = true;
 
     while (exists) {
       code = "30OFF-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-
       const { data, error } = await supabase
         .from("registrations")
         .select("id")
@@ -73,34 +83,27 @@ export default function Upcoming() {
       return false;
     }
 
-    // Send email
-    await fetch("/api/sendCode", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code }),
-    });
+    // Optionally send email here
 
-    alert(`Registered! Check your email for the 30% discount code: ${code}`);
     setRegisteredEbooks((prev) => ({ ...prev, [ebookId]: true }));
+    alert(`Registered! Your 30% discount code: ${code}`);
     return true;
   };
 
-  // Supabase Realtime subscription: handle deleted rows
+  // Realtime subscription to detect deleted rows
   useEffect(() => {
     const subscription = supabase
       .channel("public:registrations")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "registrations" },
+        { event: "DELETE", schema: "public", table: "registrations" },
         (payload) => {
-          if (payload.eventType === "DELETE") {
-            const deleted = payload.old;
-            setRegisteredEbooks((prev) => {
-              const updated = { ...prev };
-              if (updated[deleted.ebook_id]) delete updated[deleted.ebook_id];
-              return updated;
-            });
-          }
+          const deleted = payload.old;
+          setRegisteredEbooks((prev) => {
+            const updated = { ...prev };
+            if (updated[deleted.ebook_id]) delete updated[deleted.ebook_id];
+            return updated;
+          });
         }
       )
       .subscribe();
