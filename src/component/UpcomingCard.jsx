@@ -1,9 +1,16 @@
+// src/component/UpcomingCard.jsx
 import React, { useState, useEffect } from "react";
 
 const UpcomingCard = ({ ebook, onRegister }) => {
   const [email, setEmail] = useState("");
   const [registered, setRegistered] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
+
+  // Check localStorage for registration
+  useEffect(() => {
+    const stored = localStorage.getItem(`registered_${ebook.id}`);
+    if (stored) setRegistered(true);
+  }, [ebook.id]);
 
   // Countdown timer
   useEffect(() => {
@@ -77,7 +84,7 @@ const UpcomingCard = ({ ebook, onRegister }) => {
         </form>
       ) : (
         <p className="text-green-600 font-semibold mt-2">
-          ✔ Registered! Check your email for 30% off.
+          ✔ Registered! You’ll get 30% off.
         </p>
       )}
     </div>
