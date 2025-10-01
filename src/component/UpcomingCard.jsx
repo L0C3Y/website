@@ -1,16 +1,9 @@
-// src/component/UpcomingCard.jsx
 import React, { useState, useEffect } from "react";
 
 const UpcomingCard = ({ ebook, onRegister }) => {
   const [email, setEmail] = useState("");
   const [registered, setRegistered] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
-
-  // Check localStorage for registration
-  useEffect(() => {
-    const stored = localStorage.getItem(`registered_${ebook.id}`);
-    if (stored) setRegistered(true);
-  }, [ebook.id]);
 
   // Countdown timer
   useEffect(() => {
@@ -36,6 +29,21 @@ const UpcomingCard = ({ ebook, onRegister }) => {
     return () => clearInterval(interval);
   }, [ebook.releaseDate]);
 
+  // Check Supabase for existing registration
+  useEffect(() => {
+    const checkRegistration = async () => {
+      try {
+        const { data, error } = await onRegister(null, ebook.id, true); // third param = check only
+        if (error) console.error(error);
+        if (data && data.length > 0) setRegistered(true);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    checkRegistration();
+  }, [ebook.id, onRegister]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
@@ -44,10 +52,8 @@ const UpcomingCard = ({ ebook, onRegister }) => {
     }
 
     const success = await onRegister(email, ebook.id);
-    if (success) {
-      setRegistered(true);
-      setEmail("");
-    }
+    if (success) setRegistered(true);
+    setEmail("");
   };
 
   return (
