@@ -10,7 +10,7 @@ const ebooks = [
     title: "Calisthenics GuideBook",
     description: "Learn bodyweight exercises and build strength anywhere.",
     cover: c,
-    releaseDate: "2025-10-11",
+    releaseDate: "2025-10-11T00:00:00",
   },
 ];
 
@@ -22,14 +22,20 @@ const generateDiscountCode = () => {
 export default function Upcoming() {
   const handleRegister = async (email, ebookId) => {
     try {
-      // Prevent duplicates
-      const { data: existing } = await supabase
+      // ✅ Prevent duplicate registrations
+      const { data: existing, error: selectError } = await supabase
         .from("registrations")
         .select("*")
         .eq("email", email)
         .eq("ebook_id", ebookId);
 
-      if (existing.length > 0) {
+      if (selectError) {
+        console.error("Supabase select error:", selectError.message);
+        alert("Registration failed. Try again.");
+        return false;
+      }
+
+      if (existing?.length > 0) {
         alert(
           "You have already registered! Check your email for the discount code."
         );
@@ -38,18 +44,18 @@ export default function Upcoming() {
 
       const code = generateDiscountCode();
 
-      // Save to Supabase
-      const { error } = await supabase
+      // ✅ Insert registration
+      const { error: insertError } = await supabase
         .from("registrations")
         .insert([{ email, ebook_id: ebookId, code }]);
 
-      if (error) {
-        console.error(error);
+      if (insertError) {
+        console.error("Supabase insert error:", insertError.message);
         alert("Failed to register. Try again.");
         return false;
       }
 
-      // Send email via API route
+      // ✅ Send email via API
       const emailRes = await fetch("/api/sendCode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,13 +66,13 @@ export default function Upcoming() {
         alert(
           "Registered, but failed to send email. Check your registration later."
         );
-        return true;
+      } else {
+        alert("Registered! 🎉 Check your email for the 30% discount code.");
       }
 
-      alert("Registered! 🎉 Check your email for the 30% discount code.");
       return true;
     } catch (err) {
-      console.error(err);
+      console.error("Unexpected error:", err);
       alert("Something went wrong. Try again.");
       return false;
     }
