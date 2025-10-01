@@ -1,7 +1,7 @@
 // src/pages/upcoming.jsx
 import React from "react";
 import UpcomingCard from "../component/UpcomingCard";
-import { supabase } from "../supabaseClient"; // ../ goes up one folder from pages/
+import { supabase } from "../supabaseClient";
 import c from "../../public/calisupcoming.png";
 
 const ebooks = [
