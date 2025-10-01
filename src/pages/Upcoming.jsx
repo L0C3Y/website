@@ -10,7 +10,7 @@ const ebooks = [
     title: "Calisthenics GuideBook",
     description: "Learn bodyweight exercises and build strength anywhere.",
     cover: c,
-    releaseDate: "2025-10-11T00:00:00",
+    releaseDate: "2025-10-11",
   },
 ];
 
