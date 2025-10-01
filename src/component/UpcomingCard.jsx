@@ -1,4 +1,3 @@
-// src/component/UpcomingCard.jsx
 import React, { useState, useEffect } from "react";
 
 const UpcomingCard = ({ ebook, onRegister }) => {
@@ -37,15 +36,21 @@ const UpcomingCard = ({ ebook, onRegister }) => {
       return;
     }
 
-    await onRegister(email, ebook.id);
-    setRegistered(true);
-    setEmail("");
+    const success = await onRegister(email, ebook.id);
+    if (success) {
+      setRegistered(true);
+      setEmail("");
+    }
   };
 
   return (
     <div className="upcoming-card bg-white shadow-lg rounded-xl overflow-hidden flex flex-col items-center p-4">
       <div className="upcoming-cover mb-4 w-full">
-        <img src={ebook.cover} alt={ebook.title} className="w-full h-64 object-cover rounded-lg" />
+        <img
+          src={ebook.cover}
+          alt={ebook.title}
+          className="w-full h-64 object-cover rounded-lg"
+        />
       </div>
 
       <h3 className="text-xl font-bold text-center mb-2">{ebook.title}</h3>
@@ -71,7 +76,9 @@ const UpcomingCard = ({ ebook, onRegister }) => {
           </button>
         </form>
       ) : (
-        <p className="text-green-600 font-semibold mt-2">✔ Registered! You’ll get 30% off.</p>
+        <p className="text-green-600 font-semibold mt-2">
+          ✔ Registered! Check your email for 30% off.
+        </p>
       )}
     </div>
   );
