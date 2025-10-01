@@ -1,13 +1,12 @@
-// components/UpcomingCard.jsx
+// src/component/UpcomingCard.jsx
 import React, { useState, useEffect } from "react";
-import "../styles/cards.css"; // keep your styles or upgrade with Tailwind
 
 const UpcomingCard = ({ ebook, onRegister }) => {
   const [email, setEmail] = useState("");
   const [registered, setRegistered] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
 
-  // Countdown timer logic
+  // Countdown timer
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -31,13 +30,14 @@ const UpcomingCard = ({ ebook, onRegister }) => {
     return () => clearInterval(interval);
   }, [ebook.releaseDate]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       alert("Enter a valid email");
       return;
     }
-    onRegister(email, ebook.id);
+
+    await onRegister(email, ebook.id);
     setRegistered(true);
     setEmail("");
   };

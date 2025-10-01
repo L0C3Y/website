@@ -1,23 +1,38 @@
-// pages/upcoming.jsx
-import React, { useState } from "react";
-import UpcomingCard from "../component/UpcomingCard"; // adjust path if needed
-import c from "../../public/calisupcoming.png"; // sample cover image
+// src/pages/upcoming.jsx
+import React from "react";
+import UpcomingCard from "../component/UpcomingCard";
+import { supabase } from "../supabaseClient";
+import c from "../../public/calisupcoming.png";
+
 const ebooks = [
   {
     id: 3,
     title: "Calisthenics GuideBook",
     description: "Learn bodyweight exercises and build strength anywhere.",
     cover: c,
-    releaseDate: "2025-10-11",
+    releaseDate: "2025-10-11T00:00:00",
   }
 ];
 
 export default function Upcoming() {
-  const [registrations, setRegistrations] = useState([]);
 
-  const handleRegister = (email, ebookId) => {
-    setRegistrations((prev) => [...prev, { email, ebookId }]);
-    console.log(`Registered ${email} for ebook ${ebookId}`);
+  const handleRegister = async (email, ebookId) => {
+    try {
+      const { data, error } = await supabase
+        .from("registrations")
+        .insert([{ email, ebook_id: ebookId }]);
+
+      if (error) {
+        console.error("❌ Registration error:", error.message);
+        alert("Failed to register. Try again.");
+      } else {
+        console.log("✅ Registered:", data);
+        alert("Registered! You’ll be notified for the ebook.");
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      alert("Something went wrong. Try again.");
+    }
   };
 
   return (
