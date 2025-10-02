@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useMemo, createContext } from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Link,
-  useLocation,
-  Navigate,
-  useParams,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation, Navigate, useParams } from "react-router-dom";
 
 import Home from "./pages/Home";
 import Ebooks from "./pages/Ebooks";
@@ -16,7 +8,7 @@ import Feedback from "./pages/Feedback";
 import AffiliateDashboard from "./component/AffiliateDashboard";
 import EnhancedCheckout from "./component/EnhancedCheckout";
 import "./App.css";
-import backgroundImg from "./media/background.png";
+import backgroundImg from './media/background.png';
 
 // ✅ Context for affiliate code
 export const AffiliateContext = createContext({
@@ -47,11 +39,7 @@ const AffiliateTracker = ({ children }) => {
   }, [location.search]);
 
   const value = useMemo(() => ({ code, setCode }), [code]);
-  return (
-    <AffiliateContext.Provider value={value}>
-      {children}
-    </AffiliateContext.Provider>
-  );
+  return <AffiliateContext.Provider value={value}>{children}</AffiliateContext.Provider>;
 };
 
 // ---- Navbar ----
@@ -59,9 +47,7 @@ const Navbar = () => {
   const location = useLocation();
   const [active, setActive] = useState(location.pathname);
 
-  const handleClick = (path) => {
-    setActive(path);
-  };
+  const handleClick = (path) => setActive(path);
 
   const links = [
     { to: "/ebooks", label: "Ebooks" },
@@ -72,21 +58,16 @@ const Navbar = () => {
 
   return (
     <nav className="nav">
-      <Link to="/" className="logo nav-item">
-        Snowstrom
-        <span className="hover-underline"></span>
-      </Link>
+      <Link to="/" className="logo">Snowstrom</Link>
       <div className="nav-links">
-        {links.map((link) => (
+        {links.map(link => (
           <Link
             key={link.to}
             to={link.to}
-            className={`nav-item ${active === link.to ? "active" : ""}`}
+            className={active === link.to ? "active" : ""}
             onClick={() => handleClick(link.to)}
           >
             {link.label}
-            <span className="hover-underline"></span>
-            <span className="ripple"></span>
           </Link>
         ))}
       </div>
@@ -119,22 +100,8 @@ export default function App() {
     try {
       setLoading(true);
       setErr("");
-      setEbooks([
-        {
-          id: 1,
-          title: "Sample Ebook",
-          author: "Author",
-          description: "A great ebook.",
-        },
-      ]);
-      setUpcoming([
-        {
-          id: 2,
-          title: "Upcoming Ebook",
-          author: "Author",
-          description: "Coming soon!",
-        },
-      ]);
+      setEbooks([{ id: 1, title: "Sample Ebook", author: "Author", description: "A great ebook." }]);
+      setUpcoming([{ id: 2, title: "Upcoming Ebook", author: "Author", description: "Coming soon!" }]);
     } catch (e) {
       setErr("Failed to load content");
       console.error(e);
@@ -146,57 +113,25 @@ export default function App() {
   return (
     <BrowserRouter>
       <AffiliateTracker>
-        <div
-          className="app"
-          style={{
-            backgroundImage: `url(${backgroundImg})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-            minHeight: "100vh",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+        <div className="app" style={{
+          backgroundImage: `url(${backgroundImg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
           <Navbar />
-          {err && (
-            <div className="banner error">
-              <strong>Error:</strong> {err}
-            </div>
-          )}
+          {err && <div className="banner error"><strong>Error:</strong> {err}</div>}
           {loading && <div className="banner info">Loading…</div>}
           <main className="container">
             <Routes>
-              <Route
-                path="/"
-                element={<Home ebooks={ebooks} upcoming={upcoming} />}
-              />
-              <Route
-                path="/ebooks"
-                element={
-                  Ebooks ? <Ebooks ebooks={ebooks} /> : <div>Loading...</div>
-                }
-              />
-              <Route
-                path="/upcoming"
-                element={
-                  Upcoming ? <Upcoming upcoming={upcoming} /> : <div>Loading...</div>
-                }
-              />
-              <Route
-                path="/feedback"
-                element={Feedback ? <Feedback /> : <div>Loading...</div>}
-              />
-              <Route
-                path="/affiliates"
-                element={
-                  AffiliateDashboard ? (
-                    <AffiliateDashboard />
-                  ) : (
-                    <div>Loading...</div>
-                  )
-                }
-              />
+              <Route path="/" element={<Home ebooks={ebooks} upcoming={upcoming} />} />
+              <Route path="/ebooks" element={Ebooks ? <Ebooks ebooks={ebooks} /> : <div>Loading...</div>} />
+              <Route path="/upcoming" element={Upcoming ? <Upcoming upcoming={upcoming} /> : <div>Loading...</div>} />
+              <Route path="/feedback" element={Feedback ? <Feedback /> : <div>Loading...</div>} />
+              <Route path="/affiliates" element={AffiliateDashboard ? <AffiliateDashboard /> : <div>Loading...</div>} />
               <Route path="/checkout/:ebookId" element={<CheckoutWrapper />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

@@ -21,7 +21,6 @@ body, html, #root {
   color: var(--text-light);
 }
 
-/* App */
 .app {
   min-height: 100vh;
   display: flex;
@@ -34,7 +33,7 @@ body, html, #root {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0,0,0,0.7);
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
@@ -42,6 +41,7 @@ body, html, #root {
   border-bottom: 1px solid var(--border);
 }
 
+/* Logo with left-line */
 .logo {
   font-weight: 900;
   font-size: 2rem;
@@ -49,19 +49,26 @@ body, html, #root {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   position: relative;
+  padding-left: 1.5rem;
   cursor: pointer;
 }
 
-.logo-underline {
+.logo::before {
+  content: "";
   position: absolute;
-  bottom: -4px;
   left: 0;
-  height: 3px;
-  width: 100%;
+  top: 0;
+  height: 130%; /* taller for logo */
+  width: 5px;
   background: var(--primary);
-  box-shadow: 0 0 12px var(--primary);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.3s ease;
   border-radius: 2px;
-  opacity: 0.6;
+}
+
+.logo:hover::before {
+  transform: scaleY(1);
 }
 
 /* Navbar links */
@@ -70,56 +77,58 @@ body, html, #root {
   color: var(--text-light);
   font-weight: 600;
   margin-left: 1.5rem;
+  padding-left: 0.5rem;
   padding-bottom: 4px;
   text-decoration: none;
-  transition: none; /* pointer hover doesn't change color */
+  transition: color 0.3s ease;
 }
 
-.nav-links a.active {
-  color: var(--accent);
+.nav-links a::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background: var(--primary);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.3s ease;
+  border-radius: 2px;
 }
 
-.nav-links a .hover-underline {
-  content: '';
+.nav-links a:hover::before,
+.nav-links a.active::before {
+  transform: scaleY(1);
+}
+
+.nav-links a::after {
+  content: "";
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 100%;
   height: 3px;
-  border-radius: 50%;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform 0.5s ease;
+  width: 0;
+  background: var(--primary);
+  border-radius: 2px;
+  box-shadow: 0 0 6px var(--primary);
+  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.nav-links a.active .hover-underline {
-  transform: scaleX(1);
+.nav-links a:hover::after,
+.nav-links a.active::after {
+  width: 100%;
 }
 
-/* Ripple effect */
-.ripple {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(241, 46, 46, 0.3);
-  transform: scale(0);
-  pointer-events: none;
+/* Footer */
+.footer {
+  background: var(--bg-light);
+  color: #aaa;
+  padding: 2rem;
+  text-align: center;
 }
 
-.ripple.animate {
-  animation: ripple 0.6s linear forwards;
-}
-
-@keyframes ripple {
-  to {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
-
-/* Other sections (hero, ebooks, forms, footer) */
-/* Keep your original code for hero, ebook-grid, forms, footer, unchanged */
-
+/* Hero */
 .hero {
   height: 600px;
   display: flex;
@@ -134,24 +143,29 @@ body, html, #root {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
 }
-.hero h1 { font-size: 3rem; margin-bottom: 1rem; z-index:1;}
-.hero p { font-size: 1.25rem; margin-bottom: 2rem; z-index:1;}
-.hero-btn { background: var(--gradient); padding: 0.8rem 2rem; border-radius: var(--radius); color:#fff; font-weight:700; box-shadow:var(--shadow); z-index:1; transition:0.3s;}
-.hero-btn:hover { transform: scale(1.05); box-shadow: var(--shadow-hover);}
-
-.ebooks-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:2rem; margin:2rem;}
-.ebook-card { background: var(--bg-light); border-radius:var(--radius); padding:1.5rem; text-align:center; box-shadow:var(--shadow); transition: transform 0.3s, box-shadow 0.3s;}
-.ebook-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-hover);}
-.ebook-card img { width:100%; border-radius:var(--radius); margin-bottom:1rem;}
-.ebook-card h3 { margin:0.5rem 0; font-size:1.25rem; color:var(--accent);}
-.ebook-card p { font-size:0.95rem; color:#ccc;}
-
-.register-form, .feedback-form { background: var(--glass); backdrop-filter: blur(12px); padding:2rem; border-radius:var(--radius); box-shadow:var(--shadow); max-width:400px; margin:2rem auto; color:var(--text-light);}
-.register-form input, .feedback-form input, .feedback-form textarea { background: rgba(255,255,255,0.1); border:1px solid var(--border); color:var(--text-light); border-radius:var(--radius); padding:0.75rem; margin-bottom:1rem; width:100%;}
-.register-form input::placeholder, .feedback-form input::placeholder, .feedback-form textarea::placeholder { color:#aaa;}
-.register-form button, .feedback-form button { background: var(--gradient); color:#fff; padding:0.75rem 2rem; border-radius:var(--radius); font-weight:700; cursor:pointer; transition:0.3s;}
-.register-form button:hover, .feedback-form button:hover { transform:scale(1.05); box-shadow: var(--shadow-hover);}
-
-.footer { background: var(--bg-light); color:#aaa; padding:2rem; text-align:center; }
+.hero h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  z-index: 1;
+}
+.hero p {
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+  z-index: 1;
+}
+.hero-btn {
+  background: var(--gradient);
+  padding: 0.8rem 2rem;
+  border-radius: var(--radius);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  z-index: 1;
+  transition: 0.3s;
+}
+.hero-btn:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-hover);
+}
