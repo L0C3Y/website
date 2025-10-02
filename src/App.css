@@ -1,16 +1,15 @@
 :root {
   --primary: #2563eb;
-  --primary-dark: #1e40af;
   --accent: #f12e2e;
   --bg-dark: #111111;
   --bg-light: #1f1f1f;
   --text-light: #e5e7eb;
   --border: #333;
   --radius: 16px;
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  --shadow-hover: 0 8px 40px rgba(0, 0, 0, 0.6);
+  --shadow: 0 4px 20px rgba(0,0,0,0.4);
+  --shadow-hover: 0 8px 40px rgba(0,0,0,0.6);
   --gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-  --glass: rgba(255, 255, 255, 0.05);
+  --glass: rgba(255,255,255,0.05);
 }
 
 body, html, #root {
@@ -57,18 +56,11 @@ body, html, #root {
   content: "";
   position: absolute;
   left: 0;
-  bottom: 0;      /* start from bottom */
-  height: 130%;    /* slightly taller than text */
+  bottom: 0;
   width: 5px;
+  height: 150%; /* logo line longer than links */
   background: var(--primary);
-  transform: scaleY(0);
-  transform-origin: bottom;   /* grow from bottom */
-  transition: transform 0.3s ease;
   border-radius: 2px;
-}
-
-.logo:hover::before {
-  transform: scaleY(1);
 }
 
 /* Navbar links */
@@ -78,46 +70,28 @@ body, html, #root {
   font-weight: 600;
   margin-left: 1.5rem;
   padding-left: 0.5rem;
-  padding-bottom: 4px;
   text-decoration: none;
-  transition: color 0.3s ease;
 }
 
+/* Vertical line from bottom-left */
 .nav-links a::before {
   content: "";
   position: absolute;
   left: 0;
-  bottom: 0;       /* start from bottom */
-  height: 100%;
+  bottom: 0;
   width: 3px;
+  height: 100%;
   background: var(--primary);
-  transform: scaleY(0);
-  transform-origin: bottom;   /* grow from bottom */
-  transition: transform 0.3s ease;
   border-radius: 2px;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.3s ease;
 }
 
+/* Hover & active line */
 .nav-links a:hover::before,
 .nav-links a.active::before {
   transform: scaleY(1);
-}
-
-.nav-links a::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 3px;
-  width: 0;
-  background: var(--primary);
-  border-radius: 2px;
-  box-shadow: 0 0 6px var(--primary);
-  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.nav-links a:hover::after,
-.nav-links a.active::after {
-  width: 100%;
 }
 
 /* Footer */
@@ -128,7 +102,7 @@ body, html, #root {
   text-align: center;
 }
 
-/* Hero */
+/* Hero section (example) */
 .hero {
   height: 600px;
   display: flex;

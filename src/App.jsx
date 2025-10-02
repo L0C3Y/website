@@ -10,7 +10,7 @@ import EnhancedCheckout from "./component/EnhancedCheckout";
 import "./App.css";
 import backgroundImg from './media/background.png';
 
-// ✅ Context for affiliate code
+// ✅ Affiliate Context
 export const AffiliateContext = createContext({ code: null, setCode: () => {} });
 
 // ---- Affiliate Tracker ----
