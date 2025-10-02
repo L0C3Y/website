@@ -6,7 +6,7 @@
 .ebook-box,
 .upcoming-card,
 .feedback-box {
-  background: #fff;
+  background: transparent;
   border-radius: var(--radius, 16px);
   box-shadow: var(--shadow, 0 4px 25px rgba(0, 0, 0, 0.08));
   padding: 2rem 1.5rem;
