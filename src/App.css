@@ -93,10 +93,12 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   position: relative;
   transition: 0.3s;
 }
+
 .nav-links a:hover::after,
 .nav-links a.active::after {
   width: 100%;
 }
+
 .nav-links a::after {
   content: "";
   position: absolute;
@@ -110,19 +112,8 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 }
 
 /* ============================= */
-/* Hero Section + Video Background */
+/* Hero Section + Video Background + Glass Login */
 /* ============================= */
-.hero {
-  margin-bottom: 2rem;
-  font-size: 2.1rem;
-  font-weight: 700;
-  color: var(--primary-dark);
-  -webkit-background-clip: text;
-  background-clip: text;
-  line-height: 1.2;
-  text-align: center;
-}
-
 .hero-video-bg {
   position: relative;
   width: 100%;
@@ -154,45 +145,84 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transform: translate(-50%, -50%);
   width: 90%;
   max-width: 400px;
-  height: auto;
+  padding: 2rem;
   z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(15px);
   border-radius: var(--radius);
-  padding: 2rem;
   box-shadow: 0 8px 30px rgba(0,0,0,0.5);
   text-align: center;
 }
 
-.hero-content {
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  padding: 2rem 3rem;
-  border-radius: var(--radius);
-  text-align: center;
-  max-width: 600px;
-  width: 90%;
-  z-index: 2;
-  position: relative;
-}
-
-/* Hero Text */
-.hero h1 {
-  font-size: 3rem;
+.hero-overlay h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
   background: var(--gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 1rem;
 }
 
-.hero-subtext {
-  font-size: 1.25rem;
+.hero-overlay p {
+  font-size: 1.2rem;
+  color: #eee;
+  margin-bottom: 1.5rem;
+}
+
+/* Glassy Login Form */
+.glass-login {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.glass-login input {
+  padding: 0.8rem;
+  border-radius: var(--radius);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s;
+}
+
+.glass-login input:focus {
+  border: 1.5px solid var(--primary);
+  outline: none;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+}
+
+.glass-login button {
+  padding: 0.8rem;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--gradient);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.glass-login button:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Hero Text */
+.hero {
   margin-bottom: 2rem;
-  color: #ccc;
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  -webkit-background-clip: text;
+  background-clip: text;
+  line-height: 1.2;
+  text-align: center;
 }
 
 /* ============================= */
@@ -279,21 +309,6 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 }
 
 /* ============================= */
-/* Thank You Section */
-/* ============================= */
-.thank-you {
-  margin-top: 2rem;
-  color: var(--primary-dark);
-  font-weight: 600;
-  font-size: 1.1rem;
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 600px;
-  animation: fadeInScale 0.5s ease-out;
-}
-
-/* ============================= */
 /* Posters & Premium Sections */
 /* ============================= */
 .poster-row {
@@ -372,6 +387,56 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 }
 
 /* ============================= */
+/* Ebooks Grid */
+/* ============================= */
+.ebooks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.ebook-card {
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.ebook-card:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--shadow-hover);
+}
+
+.ebook-card img {
+  max-width: 180px;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.ebook-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ebook-card p {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: #aaa;
+}
+
+.ebook-price {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--primary);
+}
+
+/* ============================= */
 /* Modal Popup */
 /* ============================= */
 .modal-overlay {
@@ -440,136 +505,6 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 }
 
 /* ============================= */
-/* Ebooks Grid */
-/* ============================= */
-.ebooks-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  margin: 2rem 0;
-}
-
-.ebook-card {
-  background: var(--bg-light);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow);
-  transition: transform 0.3s, box-shadow 0.3s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.ebook-card:hover {
-  transform: translateY(-10px);
-  box-shadow: var(--shadow-hover);
-}
-
-.ebook-card img {
-  max-width: 180px;
-  border-radius: 12px;
-  margin-bottom: 1rem;
-}
-
-.ebook-card h3 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.ebook-card p {
-  font-size: 1rem;
-  margin-bottom: 1rem;
-  color: #aaa;
-}
-
-.ebook-price {
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: var(--primary);
-}
-
-/* ============================= */
-/* Promo Video Section */
-/* ============================= */
-.promo-video-section {
-  text-align: center;
-  margin: 2rem 0;
-}
-
-.promo-video {
-  width: 100%;
-  max-width: 600px;
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  transition: box-shadow 0.2s ease;
-}
-
-.promo-video:hover {
-  box-shadow: var(--shadow-hover);
-}
-
-/* ============================= */
-/* Error messages */
-/* ============================= */
-.error-message {
-  color: var(--accent);
-  font-size: 0.85rem;
-  text-align: left;
-  width: 100%;
-  margin-top: 0.25rem;
-}
-
-.general-error {
-  color: #fff;
-  background: var(--accent);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius);
-  margin-bottom: 1rem;
-  font-weight: 600;
-  text-align: center;
-  border: 1px solid rgba(220,38,38,0.2);
-}
-
-/* ============================= */
-/* Loading State */
-/* ============================= */
-.loading {
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-/* ============================= */
-/* Animations */
-/* ============================= */
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* ============================= */
-/* Footer */
-/* ============================= */
-.footer {
-  margin-top: 2rem;
-  padding: 2rem;
-  text-align: center;
-  color: #888;
-  font-size: 0.9rem;
-}
-
-/* ============================= */
 /* Responsive Media Queries */
 /* ============================= */
 @media (max-width: 768px) {
@@ -584,6 +519,19 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   .register-form, .feedback-form { max-width: 280px; padding: 1rem; }
   .hero-overlay { padding: 2rem 1rem; }
   .hero-btn { margin-bottom: 10px; }
+}
+
+/* ============================= */
+/* Animations */
+/* ============================= */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* ============================= */
