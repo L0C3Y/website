@@ -1,5 +1,6 @@
 :root {
   --primary: #2563eb;
+  --primary-dark: #1e40af;
   --accent: #f12e2e;
   --bg-dark: #0f0f0f;
   --bg-light: #1c1c1c;
@@ -48,10 +49,10 @@ body, html, #root, .app, main.container {
 }
 .nav-links a {
   margin-left: 2rem;
-  position: relative;
   font-weight: 600;
   color: var(--text-light);
   text-decoration: none;
+  position: relative;
   transition: 0.3s;
 }
 .nav-links a:hover::after,
@@ -103,6 +104,8 @@ body, html, #root, .app, main.container {
   max-width: 600px;
   width: 90%;
 }
+
+/* Hero Text */
 .hero h1 {
   font-size: 3rem;
   background: var(--gradient);
