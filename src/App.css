@@ -27,7 +27,7 @@ body, html, #root, .app, main.container {
 /* Full-screen sections */
 section, .hero, .ebooks-grid, .upcoming-section, .feedback-section, .affiliate-section {
   width: 100%;
-  min-height: 100vh; /* Full viewport height */
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -107,15 +107,6 @@ section, .hero, .ebooks-grid, .upcoming-section, .feedback-section, .affiliate-s
   width: 100%;
 }
 
-/* Footer */
-.footer {
-  background: var(--bg-light);
-  color: #aaa;
-  padding: 2rem;
-  text-align: center;
-  width: 100%;
-}
-
 /* Hero */
 .hero {
   height: 100vh;
@@ -165,6 +156,15 @@ section, .hero, .ebooks-grid, .upcoming-section, .feedback-section, .affiliate-s
   gap: 2rem;
   width: 100%;
   max-width: 100%;
+}
+
+/* Footer */
+.footer {
+  background: var(--bg-light);
+  color: #aaa;
+  padding: 2rem;
+  text-align: center;
+  width: 100%;
 }
 
 /* Responsive adjustments */
