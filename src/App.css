@@ -13,6 +13,7 @@
   --glass: rgba(255,255,255,0.05);
 }
 
+/* Global */
 body, html, #root {
   margin: 0;
   padding: 0;
@@ -28,6 +29,7 @@ body, html, #root {
   background: url('./media/background.png') center/cover no-repeat fixed;
 }
 
+/* Navbar */
 .nav {
   display: flex;
   justify-content: space-between;
@@ -50,17 +52,45 @@ body, html, #root {
   cursor: pointer;
 }
 
+/* ============================= */
+/* Premium underline effect */
+/* ============================= */
 .nav-links a {
+  position: relative;
   color: var(--text-light);
   font-weight: 600;
   margin-left: 1.5rem;
-  transition: 0.3s;
-}
-.nav-links a:hover {
-  color: var(--accent);
-  transform: scale(1.05);
+  padding-bottom: 4px;
+  transition: color 0.3s ease;
+  text-decoration: none;
 }
 
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 0;
+  background: var(--primary);
+  border-radius: 2px;
+  box-shadow: 0 0 6px var(--primary);
+  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.nav-links a:hover {
+  color: var(--accent);
+}
+
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+.nav-links a.active::after {
+  width: 100%;
+}
+
+/* Hero */
 .hero {
   height: 600px;
   display: flex;
@@ -77,19 +107,16 @@ body, html, #root {
   inset: 0;
   background: rgba(0,0,0,0.5);
 }
-
 .hero h1 {
   font-size: 3rem;
   margin-bottom: 1rem;
   z-index: 1;
 }
-
 .hero p {
   font-size: 1.25rem;
   margin-bottom: 2rem;
   z-index: 1;
 }
-
 .hero-btn {
   background: var(--gradient);
   padding: 0.8rem 2rem;
@@ -105,13 +132,13 @@ body, html, #root {
   box-shadow: var(--shadow-hover);
 }
 
+/* Ebook grid */
 .ebooks-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
   margin: 2rem;
 }
-
 .ebook-card {
   background: var(--bg-light);
   border-radius: var(--radius);
@@ -124,24 +151,22 @@ body, html, #root {
   transform: translateY(-6px);
   box-shadow: var(--shadow-hover);
 }
-
 .ebook-card img {
   width: 100%;
   border-radius: var(--radius);
   margin-bottom: 1rem;
 }
-
 .ebook-card h3 {
   margin: 0.5rem 0;
   font-size: 1.25rem;
   color: var(--accent);
 }
-
 .ebook-card p {
   font-size: 0.95rem;
   color: #ccc;
 }
 
+/* Forms */
 .register-form, .feedback-form {
   background: var(--glass);
   backdrop-filter: blur(12px);
@@ -152,7 +177,9 @@ body, html, #root {
   margin: 2rem auto;
   color: var(--text-light);
 }
-.register-form input, .feedback-form input, .feedback-form textarea {
+.register-form input,
+.feedback-form input,
+.feedback-form textarea {
   background: rgba(255,255,255,0.1);
   border: 1px solid var(--border);
   color: var(--text-light);
@@ -161,10 +188,13 @@ body, html, #root {
   margin-bottom: 1rem;
   width: 100%;
 }
-.register-form input::placeholder, .feedback-form input::placeholder, .feedback-form textarea::placeholder {
+.register-form input::placeholder,
+.feedback-form input::placeholder,
+.feedback-form textarea::placeholder {
   color: #aaa;
 }
-.register-form button, .feedback-form button {
+.register-form button,
+.feedback-form button {
   background: var(--gradient);
   color: #fff;
   padding: 0.75rem 2rem;
@@ -173,11 +203,13 @@ body, html, #root {
   cursor: pointer;
   transition: 0.3s;
 }
-.register-form button:hover, .feedback-form button:hover {
+.register-form button:hover,
+.feedback-form button:hover {
   transform: scale(1.05);
   box-shadow: var(--shadow-hover);
 }
 
+/* Footer */
 .footer {
   background: var(--bg-light);
   color: #aaa;
