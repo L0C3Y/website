@@ -11,6 +11,7 @@ const Home = () => {
   const [registered, setRegistered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showLogin, setShowLogin] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -37,10 +38,11 @@ const Home = () => {
 
   const validateForm = (data) => {
     const newErrors = {};
-    if (!data.name.trim()) newErrors.name = "Name is required";
+    if (!data.name.trim() && !showLogin) newErrors.name = "Name is required";
     if (!data.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(data.email)) newErrors.email = "Enter a valid email";
     if (data.phone && !/^\+?[\d\s\-\(\)]+$/.test(data.phone)) newErrors.phone = "Enter a valid phone number";
+    if (!data.password.trim()) newErrors.password = "Password is required";
     return newErrors;
   };
 
@@ -70,6 +72,7 @@ const Home = () => {
     }
 
     try {
+      // Register
       const registerRes = await fetch(`${BACKEND_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -83,13 +86,25 @@ const Home = () => {
         return;
       }
 
+      // Auto-login after register
+      await handleLoginInternal(data.email, data.password);
+    } catch (err) {
+      console.error(err);
+      setErrors({ general: "Server error. Try again." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLoginInternal = async (email, password) => {
+    try {
       const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           role: "user",
-          identifier: data.email,
-          password: data.password,
+          identifier: email,
+          password: password,
         }),
       });
 
@@ -106,9 +121,21 @@ const Home = () => {
     } catch (err) {
       console.error(err);
       setErrors({ general: "Server error. Try again." });
-    } finally {
-      setLoading(false);
     }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrors({});
+    const validationErrors = validateForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setLoading(false);
+      return;
+    }
+    await handleLoginInternal(formData.email, formData.password);
+    setLoading(false);
   };
 
   return (
@@ -122,43 +149,84 @@ const Home = () => {
               Claim your free PDF and explore powerful eBooks curated for champions.
             </p>
 
-            {!registered ? (
-              <form onSubmit={handleRegister} className="register-form">
-                {errors.general && <div className="general-error">{errors.general}</div>}
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Your Name"
-                  className="input-field"
-                  required
-                />
-                {errors.name && <div className="error-message">{errors.name}</div>}
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="Your Email"
-                  className="input-field"
-                  required
-                />
-                {errors.email && <div className="error-message">{errors.email}</div>}
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="Phone (optional)"
-                  className="input-field"
-                />
-                {errors.phone && <div className="error-message">{errors.phone}</div>}
-                <button type="submit" className="hero-btn" disabled={loading}>
-                  {loading ? "Processing..." : "Get Free PDF"}
-                </button>
-              </form>
-            ) : (
+            {!registered && (
+              <>
+                {/* Toggle buttons */}
+                <div className="form-toggle">
+                  <button className={`toggle-btn ${!showLogin ? "active" : ""}`} onClick={() => setShowLogin(false)}>
+                    Register
+                  </button>
+                  <button className={`toggle-btn ${showLogin ? "active" : ""}`} onClick={() => setShowLogin(true)}>
+                    Login
+                  </button>
+                </div>
+
+                {showLogin ? (
+                  <form onSubmit={handleLogin} className="login-form">
+                    {errors.general && <div className="general-error">{errors.general}</div>}
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="Your Email"
+                      className="input-field"
+                      required
+                    />
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="Password"
+                      className="input-field"
+                      required
+                    />
+                    <button type="submit" className="hero-btn" disabled={loading}>
+                      {loading ? "Logging in..." : "Login"}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleRegister} className="register-form">
+                    {errors.general && <div className="general-error">{errors.general}</div>}
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Your Name"
+                      className="input-field"
+                      required
+                    />
+                    {errors.name && <div className="error-message">{errors.name}</div>}
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="Your Email"
+                      className="input-field"
+                      required
+                    />
+                    {errors.email && <div className="error-message">{errors.email}</div>}
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="Phone (optional)"
+                      className="input-field"
+                    />
+                    {errors.phone && <div className="error-message">{errors.phone}</div>}
+                    <button type="submit" className="hero-btn" disabled={loading}>
+                      {loading ? "Processing..." : "Get Free PDF"}
+                    </button>
+                  </form>
+                )}
+              </>
+            )}
+
+            {registered && (
               <div className="thank-you">
                 <h2>⚔️ Welcome, Warrior!</h2>
                 <p>Your free PDF is on its way! Explore our collection:</p>
