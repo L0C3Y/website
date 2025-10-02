@@ -47,27 +47,51 @@ const AffiliateTracker = ({ children }) => {
   }, [location.search]);
 
   const value = useMemo(() => ({ code, setCode }), [code]);
-  return (
-    <AffiliateContext.Provider value={value}>
-      {children}
-    </AffiliateContext.Provider>
-  );
+  return <AffiliateContext.Provider value={value}>{children}</AffiliateContext.Provider>;
 };
 
 // ---- Navbar & Footer ----
-const Navbar = () => (
-  <nav className="nav">
-    <Link to="/" className="logo">
-      Snowstrom
-    </Link>
-    <div className="nav-links">
-      <Link to="/ebooks">Ebooks</Link>
-      <Link to="/upcoming">Upcoming</Link>
-      <Link to="/feedback">Feedback</Link>
-      <Link to="/affiliates">Affiliates</Link>
-    </div>
-  </nav>
-);
+const Navbar = () => {
+  const location = useLocation();
+  const [activeLink, setActiveLink] = useState(location.pathname);
+
+  const handleClick = (e, path) => {
+    const target = e.currentTarget;
+    const circle = document.createElement("span");
+    circle.className = "ripple";
+    const rect = target.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    circle.style.width = circle.style.height = size + "px";
+    circle.style.left = e.clientX - rect.left - size / 2 + "px";
+    circle.style.top = e.clientY - rect.top - size / 2 + "px";
+    target.appendChild(circle);
+    setActiveLink(path);
+    setTimeout(() => circle.remove(), 600);
+  };
+
+  return (
+    <nav className="nav">
+      <Link to="/" className="logo">Snowstrom</Link>
+      <div className="nav-links">
+        {[
+          { name: "Ebooks", path: "/ebooks" },
+          { name: "Upcoming", path: "/upcoming" },
+          { name: "Feedback", path: "/feedback" },
+          { name: "Affiliates", path: "/affiliates" },
+        ].map((link) => (
+          <Link
+            key={link.path}
+            to={link.path}
+            className={activeLink === link.path ? "active clicked" : ""}
+            onClick={(e) => handleClick(e, link.path)}
+          >
+            {link.name}
+          </Link>
+        ))}
+      </div>
+    </nav>
+  );
+};
 
 const Footer = () => (
   <footer className="footer">
@@ -93,22 +117,8 @@ export default function App() {
     try {
       setLoading(true);
       setErr("");
-      setEbooks([
-        {
-          id: 1,
-          title: "Sample Ebook",
-          author: "Author",
-          description: "A great ebook.",
-        },
-      ]);
-      setUpcoming([
-        {
-          id: 2,
-          title: "Upcoming Ebook",
-          author: "Author",
-          description: "Coming soon!",
-        },
-      ]);
+      setEbooks([{ id: 1, title: "Sample Ebook", author: "Author", description: "A great ebook." }]);
+      setUpcoming([{ id: 2, title: "Upcoming Ebook", author: "Author", description: "Coming soon!" }]);
     } catch (e) {
       setErr("Failed to load content");
       console.error(e);
@@ -133,44 +143,15 @@ export default function App() {
           }}
         >
           <Navbar />
-          {err && (
-            <div className="banner error">
-              <strong>Error:</strong> {err}
-            </div>
-          )}
+          {err && <div className="banner error"><strong>Error:</strong> {err}</div>}
           {loading && <div className="banner info">Loading…</div>}
           <main className="container">
             <Routes>
-              <Route
-                path="/"
-                element={<Home ebooks={ebooks} upcoming={upcoming} />}
-              />
-              <Route
-                path="/ebooks"
-                element={
-                  Ebooks ? <Ebooks ebooks={ebooks} /> : <div>Loading...</div>
-                }
-              />
-              <Route
-                path="/upcoming"
-                element={
-                  Upcoming ? <Upcoming upcoming={upcoming} /> : <div>Loading...</div>
-                }
-              />
-              <Route
-                path="/feedback"
-                element={Feedback ? <Feedback /> : <div>Loading...</div>}
-              />
-              <Route
-                path="/affiliates"
-                element={
-                  AffiliateDashboard ? (
-                    <AffiliateDashboard />
-                  ) : (
-                    <div>Loading...</div>
-                  )
-                }
-              />
+              <Route path="/" element={<Home ebooks={ebooks} upcoming={upcoming} />} />
+              <Route path="/ebooks" element={Ebooks ? <Ebooks ebooks={ebooks} /> : <div>Loading...</div>} />
+              <Route path="/upcoming" element={Upcoming ? <Upcoming upcoming={upcoming} /> : <div>Loading...</div>} />
+              <Route path="/feedback" element={Feedback ? <Feedback /> : <div>Loading...</div>} />
+              <Route path="/affiliates" element={AffiliateDashboard ? <AffiliateDashboard /> : <div>Loading...</div>} />
               <Route path="/checkout/:ebookId" element={<CheckoutWrapper />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
