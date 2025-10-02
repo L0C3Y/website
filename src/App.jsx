@@ -47,7 +47,11 @@ const AffiliateTracker = ({ children }) => {
   }, [location.search]);
 
   const value = useMemo(() => ({ code, setCode }), [code]);
-  return <AffiliateContext.Provider value={value}>{children}</AffiliateContext.Provider>;
+  return (
+    <AffiliateContext.Provider value={value}>
+      {children}
+    </AffiliateContext.Provider>
+  );
 };
 
 // ---- Navbar ----
@@ -55,22 +59,8 @@ const Navbar = () => {
   const location = useLocation();
   const [active, setActive] = useState(location.pathname);
 
-  const handleClick = (path, e) => {
+  const handleClick = (path) => {
     setActive(path);
-
-    // Ripple effect
-    const ripple = e.currentTarget.querySelector(".ripple");
-    const rect = e.currentTarget.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = e.clientX - rect.left - size / 2;
-    const y = e.clientY - rect.top - size / 2;
-
-    ripple.style.width = ripple.style.height = `${size}px`;
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
-    ripple.classList.remove("animate");
-    void ripple.offsetWidth; // trigger reflow
-    ripple.classList.add("animate");
   };
 
   const links = [
@@ -84,7 +74,7 @@ const Navbar = () => {
     <nav className="nav">
       <Link to="/" className="logo nav-item">
         Snowstrom
-        <span className="logo-underline"></span>
+        <span className="hover-underline"></span>
       </Link>
       <div className="nav-links">
         {links.map((link) => (
@@ -92,7 +82,7 @@ const Navbar = () => {
             key={link.to}
             to={link.to}
             className={`nav-item ${active === link.to ? "active" : ""}`}
-            onClick={(e) => handleClick(link.to, e)}
+            onClick={() => handleClick(link.to)}
           >
             {link.label}
             <span className="hover-underline"></span>
@@ -130,10 +120,20 @@ export default function App() {
       setLoading(true);
       setErr("");
       setEbooks([
-        { id: 1, title: "Sample Ebook", author: "Author", description: "A great ebook." },
+        {
+          id: 1,
+          title: "Sample Ebook",
+          author: "Author",
+          description: "A great ebook.",
+        },
       ]);
       setUpcoming([
-        { id: 2, title: "Upcoming Ebook", author: "Author", description: "Coming soon!" },
+        {
+          id: 2,
+          title: "Upcoming Ebook",
+          author: "Author",
+          description: "Coming soon!",
+        },
       ]);
     } catch (e) {
       setErr("Failed to load content");
@@ -167,11 +167,36 @@ export default function App() {
           {loading && <div className="banner info">Loading…</div>}
           <main className="container">
             <Routes>
-              <Route path="/" element={<Home ebooks={ebooks} upcoming={upcoming} />} />
-              <Route path="/ebooks" element={Ebooks ? <Ebooks ebooks={ebooks} /> : <div>Loading...</div>} />
-              <Route path="/upcoming" element={Upcoming ? <Upcoming upcoming={upcoming} /> : <div>Loading...</div>} />
-              <Route path="/feedback" element={Feedback ? <Feedback /> : <div>Loading...</div>} />
-              <Route path="/affiliates" element={AffiliateDashboard ? <AffiliateDashboard /> : <div>Loading...</div>} />
+              <Route
+                path="/"
+                element={<Home ebooks={ebooks} upcoming={upcoming} />}
+              />
+              <Route
+                path="/ebooks"
+                element={
+                  Ebooks ? <Ebooks ebooks={ebooks} /> : <div>Loading...</div>
+                }
+              />
+              <Route
+                path="/upcoming"
+                element={
+                  Upcoming ? <Upcoming upcoming={upcoming} /> : <div>Loading...</div>
+                }
+              />
+              <Route
+                path="/feedback"
+                element={Feedback ? <Feedback /> : <div>Loading...</div>}
+              />
+              <Route
+                path="/affiliates"
+                element={
+                  AffiliateDashboard ? (
+                    <AffiliateDashboard />
+                  ) : (
+                    <div>Loading...</div>
+                  )
+                }
+              />
               <Route path="/checkout/:ebookId" element={<CheckoutWrapper />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
