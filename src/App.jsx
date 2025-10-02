@@ -10,10 +10,9 @@ import EnhancedCheckout from "./component/EnhancedCheckout";
 import "./App.css";
 import backgroundImg from './media/background.png';
 
-// ✅ Affiliate Context
+// Affiliate context
 export const AffiliateContext = createContext({ code: null, setCode: () => {} });
 
-// ---- Affiliate Tracker ----
 const AffiliateTracker = ({ children }) => {
   const location = useLocation();
   const [code, setCode] = useState(() => {
@@ -35,12 +34,10 @@ const AffiliateTracker = ({ children }) => {
   return <AffiliateContext.Provider value={value}>{children}</AffiliateContext.Provider>;
 };
 
-// ---- Navbar ----
+// Navbar
 const Navbar = () => {
   const location = useLocation();
   const [active, setActive] = useState(location.pathname);
-
-  const handleClick = (path) => setActive(path);
 
   const links = [
     { to: "/ebooks", label: "Ebooks" },
@@ -48,6 +45,8 @@ const Navbar = () => {
     { to: "/feedback", label: "Feedback" },
     { to: "/affiliates", label: "Affiliates" },
   ];
+
+  const handleClick = (path) => setActive(path);
 
   return (
     <nav className="nav">
@@ -68,21 +67,21 @@ const Navbar = () => {
   );
 };
 
-// ---- Footer ----
+// Footer
 const Footer = () => (
   <footer className="footer">
     <p>© {new Date().getFullYear()} Snowstrom. All rights reserved.</p>
   </footer>
 );
 
-// ---- Checkout Wrapper ----
+// Checkout Wrapper
 const CheckoutWrapper = () => {
   const { ebookId } = useParams();
   const parsedId = Number(ebookId) || 0;
   return <EnhancedCheckout ebookId={parsedId} amount={500} />;
 };
 
-// ---- Main App ----
+// Main App
 export default function App() {
   const [ebooks, setEbooks] = useState([]);
   const [upcoming, setUpcoming] = useState([]);
@@ -98,9 +97,7 @@ export default function App() {
     } catch (e) {
       setErr("Failed to load content");
       console.error(e);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, []);
 
   return (
