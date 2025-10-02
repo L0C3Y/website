@@ -1,7 +1,6 @@
 // src/pages/Home.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import bgv from "../media/bgv.mp4"; // Ensure this path is correct
 import "../styles/app.css";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL; // Ensure ends with "/"
@@ -118,7 +117,7 @@ const Home = () => {
     <div className="home-page">
       <div className="hero-video-bg">
         <video autoPlay loop muted playsInline className="hero-bg-video">
-          <source src={bgv} type="video/mp4" />
+          <source src="/media/bgv.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 
