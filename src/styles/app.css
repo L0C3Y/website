@@ -18,6 +18,10 @@
 .container,
 .home-page,
 .upcoming-page {
+  background-image: url('../media/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   text-align: center;
 }
 
@@ -498,41 +502,7 @@
 }
 
 /* ============================= */
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  body, .home-page, .upcoming-page, .premium-section, .feedback-page {
-    background: #111827;
-    color: #f3f4f6;
-  }
 
-  .hero {
-    background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
-    -webkit-text-fill-color: transparent;
-  }
-
-  input, textarea {
-    background: #1f2937;
-    color: #f3f4f6;
-    border: 1.5px solid #374151;
-  }
-
-  .hero-btn {
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-  }
-
-  .premium-card {
-    background: #1f2937;
-    color: #f3f4f6;
-  }
-
-  .trust-icon {
-    background: #1f2937;
-    border: 1px solid #374151;
-    color: #f3f4f6;
-  }
-}
-
-/* ============================= */
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   * {
