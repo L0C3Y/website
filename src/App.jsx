@@ -11,20 +11,13 @@ import "./App.css";
 import backgroundImg from './media/background.png';
 
 // ✅ Context for affiliate code
-export const AffiliateContext = createContext({
-  code: null,
-  setCode: () => {},
-});
+export const AffiliateContext = createContext({ code: null, setCode: () => {} });
 
 // ---- Affiliate Tracker ----
 const AffiliateTracker = ({ children }) => {
   const location = useLocation();
   const [code, setCode] = useState(() => {
-    try {
-      return localStorage.getItem("aff_code") || null;
-    } catch {
-      return null;
-    }
+    try { return localStorage.getItem("aff_code") || null; } catch { return null; }
   });
 
   useEffect(() => {

@@ -41,7 +41,7 @@ body, html, #root {
   border-bottom: 1px solid var(--border);
 }
 
-/* Logo with left-line */
+/* Logo with left-bottom line */
 .logo {
   font-weight: 900;
   font-size: 2rem;
@@ -57,12 +57,12 @@ body, html, #root {
   content: "";
   position: absolute;
   left: 0;
-  top: 0;
-  height: 130%; /* taller for logo */
+  bottom: 0;      /* start from bottom */
+  height: 130%;    /* slightly taller than text */
   width: 5px;
   background: var(--primary);
   transform: scaleY(0);
-  transform-origin: top;
+  transform-origin: bottom;   /* grow from bottom */
   transition: transform 0.3s ease;
   border-radius: 2px;
 }
@@ -87,12 +87,12 @@ body, html, #root {
   content: "";
   position: absolute;
   left: 0;
-  top: 0;
+  bottom: 0;       /* start from bottom */
   height: 100%;
   width: 3px;
   background: var(--primary);
   transform: scaleY(0);
-  transform-origin: top;
+  transform-origin: bottom;   /* grow from bottom */
   transition: transform 0.3s ease;
   border-radius: 2px;
 }
