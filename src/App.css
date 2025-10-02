@@ -71,7 +71,7 @@ body, html, #root {
 }
 
 .nav-links a {
-  color: var(--text);
+  color: #fff;
   text-decoration: none;
   font-weight: 600;
   padding: 0.5em 1.2em;
