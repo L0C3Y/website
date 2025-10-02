@@ -7,26 +7,27 @@
   --text-light: #e5e7eb;
   --border: #333;
   --radius: 16px;
-  --shadow: 0 4px 20px rgba(0,0,0,0.4);
-  --shadow-hover: 0 8px 40px rgba(0,0,0,0.6);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 8px 40px rgba(0, 0, 0, 0.6);
   --gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-  --glass: rgba(255,255,255,0.05);
+  --glass: rgba(255, 255, 255, 0.05);
 }
 
-/* Global */
-body, html, #root {
+body,
+html,
+#root {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background: var(--bg-dark);
   color: var(--text-light);
 }
 
+/* App */
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: url('./media/background.png') center/cover no-repeat fixed;
 }
 
 /* Navbar */
@@ -35,7 +36,7 @@ body, html, #root {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
@@ -52,9 +53,7 @@ body, html, #root {
   cursor: pointer;
 }
 
-/* ============================= */
-/* Premium underline effect */
-/* ============================= */
+/* Navbar links underline effect */
 .nav-links a {
   position: relative;
   color: var(--text-light);
@@ -82,10 +81,7 @@ body, html, #root {
   color: var(--accent);
 }
 
-.nav-links a:hover::after {
-  width: 100%;
-}
-
+.nav-links a:hover::after,
 .nav-links a.active::after {
   width: 100%;
 }
@@ -105,7 +101,7 @@ body, html, #root {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
 }
 .hero h1 {
   font-size: 3rem;
@@ -167,7 +163,8 @@ body, html, #root {
 }
 
 /* Forms */
-.register-form, .feedback-form {
+.register-form,
+.feedback-form {
   background: var(--glass);
   backdrop-filter: blur(12px);
   padding: 2rem;
@@ -180,7 +177,7 @@ body, html, #root {
 .register-form input,
 .feedback-form input,
 .feedback-form textarea {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   border: 1px solid var(--border);
   color: var(--text-light);
   border-radius: var(--radius);
