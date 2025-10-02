@@ -45,7 +45,6 @@ body, html, #root, .app, main.container {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   cursor: pointer;
-  position: relative;
 }
 .nav-links a {
   margin-left: 2rem;
@@ -71,17 +70,38 @@ body, html, #root, .app, main.container {
   transition: width 0.4s ease;
 }
 
-/* Hero Section */
-.hero {
-  min-height: 90vh;
+/* Hero Video Background */
+.hero-video-bg {
+  position: relative;
+  width: 100%;
+  height: 90vh;
+  overflow: hidden;
+}
+.hero-bg-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+.hero-overlay {
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+}
+.hero-content {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  padding: 2rem 3rem;
+  border-radius: var(--radius);
   text-align: center;
-  padding: 2rem;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(6px);
+  max-width: 600px;
+  width: 90%;
 }
 .hero h1 {
   font-size: 3rem;
@@ -90,11 +110,47 @@ body, html, #root, .app, main.container {
   -webkit-text-fill-color: transparent;
   margin-bottom: 1rem;
 }
-.hero p {
+.hero-subtext {
   font-size: 1.25rem;
   margin-bottom: 2rem;
   color: #ccc;
 }
+
+/* Forms */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.input-field {
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-dark);
+  color: var(--text-light);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s;
+}
+.input-field:focus {
+  border-color: var(--primary);
+  box-shadow: var(--hover-glow);
+}
+.error-message {
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-align: left;
+}
+.general-error {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* Hero Buttons */
 .hero-btn {
   padding: 1rem 2rem;
   font-weight: 700;
@@ -103,19 +159,48 @@ body, html, #root, .app, main.container {
   box-shadow: var(--shadow);
   transition: all 0.3s;
   color: #fff;
+  cursor: pointer;
 }
 .hero-btn:hover {
   transform: scale(1.05);
   box-shadow: var(--shadow-hover);
 }
 
+/* Thank You Section */
+.thank-you h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+.thank-you p {
+  margin-bottom: 1.5rem;
+  color: #ccc;
+}
+.thank-you .nav-links {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Premium Banner */
+.premium-banner {
+  background: var(--bg-light);
+  text-align: center;
+  padding: 1.5rem 2rem;
+  color: #fff;
+  margin: 2rem auto;
+  border-radius: var(--radius);
+  max-width: 900px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+}
+
 /* Ebooks Grid */
 .ebooks-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
-  width: 100%;
-  margin-top: 2rem;
+  margin: 2rem 0;
 }
 .ebook-card {
   background: var(--bg-light);
@@ -158,12 +243,14 @@ body, html, #root, .app, main.container {
   text-align: center;
   padding: 2rem;
   color: #aaa;
+  margin-top: 3rem;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .hero h1 { font-size: 2rem; }
-  .hero p { font-size: 1rem; }
+  .hero-subtext { font-size: 1rem; }
   .nav-links { flex-direction: column; margin-top: 1rem; }
   .nav-links a { margin-left: 0; margin-bottom: 1rem; }
+  .hero-content { padding: 1.5rem 2rem; }
 }
