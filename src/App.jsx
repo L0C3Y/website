@@ -16,6 +16,8 @@ import Feedback from "./pages/Feedback";
 import AffiliateDashboard from "./component/AffiliateDashboard";
 import EnhancedCheckout from "./component/EnhancedCheckout";
 import "./App.css";
+import backgroundImg from './media/background.png';
+
 
 // ✅ Context for affiliate code
 export const AffiliateContext = createContext({
@@ -99,7 +101,15 @@ export default function App() {
   return (
     <BrowserRouter>
       <AffiliateTracker>
-        <div className="app">
+        <div className="app" style={{ 
+  backgroundImage: `url(${backgroundImg})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+  minHeight: '100vh',
+  display: 'flex',
+  flexDirection: 'column'
+}}>
           <Navbar />
           {err && <div className="banner error"><strong>Error:</strong> {err}</div>}
           {loading && <div className="banner info">Loading…</div>}
