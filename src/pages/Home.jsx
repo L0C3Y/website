@@ -17,6 +17,7 @@ const Home = () => {
     password: "default123",
   });
 
+  // Check if user is already logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
@@ -34,21 +35,25 @@ const Home = () => {
     }
   }, [navigate]);
 
+  // Form validation
   const validateForm = (data) => {
     const newErrors = {};
     if (!data.name.trim()) newErrors.name = "Name is required";
     if (!data.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(data.email)) newErrors.email = "Enter a valid email";
-    if (data.phone && !/^\+?[\d\s\-\(\)]+$/.test(data.phone)) newErrors.phone = "Enter a valid phone number";
+    if (data.phone && !/^\+?[\d\s\-\(\)]+$/.test(data.phone))
+      newErrors.phone = "Enter a valid phone number";
     return newErrors;
   };
 
+  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // Handle registration
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
