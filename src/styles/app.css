@@ -28,7 +28,7 @@
 .home-page, 
 .upcoming-page {
   padding: 2rem 2vw;
-  background: #fff;
+
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   width: 100%;
