@@ -120,7 +120,9 @@ const Home = () => {
         <video autoPlay loop muted playsInline className="hero-bg-video" src={bgv} />
         <div className="hero-overlay">
           <h1 className="hero">Welcome to Snowstorm Shop</h1>
-          <p>Claim your free PDF and explore powerful eBooks.</p>
+          <p style={{ fontSize: "1.25rem", marginBottom: "2rem" }}>
+            Claim your free PDF and explore powerful eBooks curated for champions.
+          </p>
 
           {!registered ? (
             <form onSubmit={handleRegister} className="register-form" noValidate>
@@ -159,7 +161,7 @@ const Home = () => {
             <div className="thank-you">
               <h2>⚔️ Welcome, Warrior!</h2>
               <p>Your free PDF is on its way! Explore our collection:</p>
-              <div className="nav-links">
+              <div className="nav-links" style={{ justifyContent: "center", marginTop: "1.5rem" }}>
                 <button className="hero-btn" onClick={() => navigate("/ebooks")}>
                   View eBooks
                 </button>
@@ -173,6 +175,11 @@ const Home = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Optional Premium Banner Section */}
+      <div className="banner info" style={{ maxWidth: "900px", margin: "2rem auto" }}>
+        🌟 Pro Tip: Unlock exclusive eBooks by registering now. Limited-time offers available!
       </div>
     </div>
   );
