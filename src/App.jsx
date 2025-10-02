@@ -46,7 +46,7 @@ const Navbar = () => {
 
   return (
     <nav className="nav">
-      <Link to="/" className="logo">SnowZorgath</Link>
+      <Link to="/" className="logo">Snowstrom</Link>
       <div className="nav-links">
         {links.map(link => (
           <Link

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import bgv from "../media/bgv.mp4";
 import "../styles/app.css";
 
-const BACKEND_URL = import.meta.env.VITE_API_URL; // Ensure ends with "/"
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 const Home = () => {
   const navigate = useNavigate();
@@ -70,13 +70,11 @@ const Home = () => {
     }
 
     try {
-      // Register
       const registerRes = await fetch(`${BACKEND_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
       const registerResult = await registerRes.json();
 
       if (!registerResult.success && !registerResult.error?.toLowerCase().includes("already registered")) {
@@ -85,7 +83,6 @@ const Home = () => {
         return;
       }
 
-      // Login
       const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,66 +116,70 @@ const Home = () => {
       <div className="hero-video-bg">
         <video autoPlay loop muted playsInline className="hero-bg-video" src={bgv} />
         <div className="hero-overlay">
-          <h1 className="hero">Welcome to Snowstorm Shop</h1>
-          <p style={{ fontSize: "1.25rem", marginBottom: "2rem", color: "#ddd" }}>
-            Claim your free PDF and explore powerful eBooks curated for champions.
-          </p>
+          <div className="hero-content glass-card">
+            <h1 className="hero">Welcome to Snowstorm Shop</h1>
+            <p className="hero-subtext">
+              Claim your free PDF and explore powerful eBooks curated for champions.
+            </p>
 
-          {!registered ? (
-            <form onSubmit={handleRegister} className="register-form glass-card" noValidate>
-              {errors.general && <div className="general-error">{errors.general}</div>}
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Your Name"
-                required
-              />
-              {errors.name && <div className="error-message">{errors.name}</div>}
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Your Email"
-                required
-              />
-              {errors.email && <div className="error-message">{errors.email}</div>}
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="Phone (optional)"
-              />
-              {errors.phone && <div className="error-message">{errors.phone}</div>}
-              <button type="submit" className="hero-btn" disabled={loading}>
-                {loading ? "Processing..." : "Get Free PDF"}
-              </button>
-            </form>
-          ) : (
-            <div className="thank-you glass-card">
-              <h2>⚔️ Welcome, Warrior!</h2>
-              <p>Your free PDF is on its way! Explore our collection:</p>
-              <div className="nav-links" style={{ justifyContent: "center", marginTop: "1.5rem" }}>
-                <button className="hero-btn" onClick={() => navigate("/ebooks")}>
-                  View eBooks
+            {!registered ? (
+              <form onSubmit={handleRegister} className="register-form">
+                {errors.general && <div className="general-error">{errors.general}</div>}
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Your Name"
+                  className="input-field"
+                  required
+                />
+                {errors.name && <div className="error-message">{errors.name}</div>}
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Your Email"
+                  className="input-field"
+                  required
+                />
+                {errors.email && <div className="error-message">{errors.email}</div>}
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="Phone (optional)"
+                  className="input-field"
+                />
+                {errors.phone && <div className="error-message">{errors.phone}</div>}
+                <button type="submit" className="hero-btn" disabled={loading}>
+                  {loading ? "Processing..." : "Get Free PDF"}
                 </button>
-                <button className="hero-btn" onClick={() => navigate("/upcoming")}>
-                  Upcoming Titles
-                </button>
-                <button className="hero-btn" onClick={() => navigate("/feedback")}>
-                  Give Feedback
-                </button>
+              </form>
+            ) : (
+              <div className="thank-you">
+                <h2>⚔️ Welcome, Warrior!</h2>
+                <p>Your free PDF is on its way! Explore our collection:</p>
+                <div className="nav-links" style={{ justifyContent: "center", marginTop: "1.5rem" }}>
+                  <button className="hero-btn" onClick={() => navigate("/ebooks")}>
+                    View eBooks
+                  </button>
+                  <button className="hero-btn" onClick={() => navigate("/upcoming")}>
+                    Upcoming Titles
+                  </button>
+                  <button className="hero-btn" onClick={() => navigate("/feedback")}>
+                    Give Feedback
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Premium Banner Section */}
-      <div className="banner info glass-card" style={{ maxWidth: "900px", margin: "2rem auto" }}>
+      <div className="premium-banner">
         🌟 Pro Tip: Unlock exclusive eBooks by registering now. Limited-time offers available!
       </div>
     </div>
