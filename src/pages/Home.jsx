@@ -1,8 +1,7 @@
 // src/pages/Home.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import bgv from "./media/bgv.mp4"; // Ensure this path is correct
-import fallbackImg from "./media/fallback.jpg"; // Add a fallback image
+import bgv from "../media/bgv.mp4"; // Ensure this path is correct
 import "../styles/app.css";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL; // Ensure ends with "/"
