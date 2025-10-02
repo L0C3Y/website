@@ -1,7 +1,7 @@
 // src/pages/Home.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "..app.css";
+import "../app.css";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL; // Ensure ends with "/"
 
