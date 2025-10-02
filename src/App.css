@@ -1,18 +1,19 @@
 :root {
   --primary: #2563eb;
   --accent: #f12e2e;
-  --bg-dark: #111111;
-  --bg-light: #1f1f1f;
+  --bg-dark: #0f0f0f;
+  --bg-light: #1c1c1c;
   --text-light: #e5e7eb;
   --border: #333;
-  --radius: 16px;
-  --shadow: 0 4px 20px rgba(0,0,0,0.4);
-  --shadow-hover: 0 8px 40px rgba(0,0,0,0.6);
+  --radius: 20px;
+  --shadow: 0 8px 30px rgba(0,0,0,0.5);
+  --shadow-hover: 0 12px 50px rgba(0,0,0,0.7);
   --gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   --glass: rgba(255,255,255,0.05);
+  --hover-glow: 0 0 15px rgba(37, 99, 235,0.8);
 }
 
-/* Global reset */
+/* Global Reset */
 body, html, #root, .app, main.container {
   margin: 0;
   padding: 0;
@@ -24,155 +25,142 @@ body, html, #root, .app, main.container {
   overflow-x: hidden;
 }
 
-/* Full-screen sections */
-section, .hero, .ebooks-grid, .upcoming-section, .feedback-section, .affiliate-section {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  padding: 2rem;
-}
-
 /* Navbar */
 .nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(10px);
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 100;
   border-bottom: 1px solid var(--border);
 }
-
-/* Logo with left-to-right underline */
-.logo {
+.nav .logo {
   font-weight: 900;
-  font-size: 2rem;
+  font-size: 2.2rem;
   background: var(--gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   cursor: pointer;
   position: relative;
-  padding-bottom: 4px;
 }
-
-.logo::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 4px;
-  width: 0;
-  background: var(--primary);
-  border-radius: 2px;
-  box-shadow: 0 0 6px var(--primary);
-  transition: width 0.4s cubic-bezier(0.25,1,0.5,1);
-}
-
-.logo:hover::after {
-  width: 100%;
-}
-
-/* Navbar links underline effect */
 .nav-links a {
+  margin-left: 2rem;
   position: relative;
-  color: var(--text-light);
   font-weight: 600;
-  margin-left: 1.5rem;
+  color: var(--text-light);
   text-decoration: none;
-  padding-bottom: 4px;
+  transition: 0.3s;
 }
-
-.nav-links a::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 3px;
-  width: 0;
-  background: var(--primary);
-  border-radius: 2px;
-  box-shadow: 0 0 6px var(--primary);
-  transition: width 0.4s cubic-bezier(0.25,1,0.5,1);
-}
-
 .nav-links a:hover::after,
 .nav-links a.active::after {
   width: 100%;
 }
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
 
-/* Hero */
+/* Hero Section */
 .hero {
-  height: 100vh;
+  min-height: 90vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  position: relative;
-  color: var(--text-light);
-}
-.hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
+  padding: 2rem;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
 }
 .hero h1 {
   font-size: 3rem;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-bottom: 1rem;
-  z-index: 1;
 }
 .hero p {
   font-size: 1.25rem;
   margin-bottom: 2rem;
-  z-index: 1;
+  color: #ccc;
 }
 .hero-btn {
-  background: var(--gradient);
-  padding: 0.8rem 2rem;
-  border-radius: var(--radius);
-  color: #fff;
+  padding: 1rem 2rem;
   font-weight: 700;
+  border-radius: var(--radius);
+  background: var(--gradient);
   box-shadow: var(--shadow);
-  z-index: 1;
-  transition: 0.3s;
+  transition: all 0.3s;
+  color: #fff;
 }
 .hero-btn:hover {
   transform: scale(1.05);
   box-shadow: var(--shadow-hover);
 }
 
-/* Grid sections (ebooks/upcoming) */
-.ebooks-grid, .upcoming-section {
+/* Ebooks Grid */
+.ebooks-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
   width: 100%;
-  max-width: 100%;
+  margin-top: 2rem;
+}
+.ebook-card {
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.ebook-card:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--shadow-hover);
+}
+.ebook-card img {
+  max-width: 180px;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+.ebook-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.ebook-card p {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: #aaa;
+}
+.ebook-price {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--primary);
 }
 
 /* Footer */
 .footer {
   background: var(--bg-light);
-  color: #aaa;
-  padding: 2rem;
   text-align: center;
-  width: 100%;
+  padding: 2rem;
+  color: #aaa;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .hero h1 { font-size: 2.5rem; }
-  .hero p { font-size: 1.1rem; }
-}
-
+/* Responsive */
 @media (max-width: 768px) {
   .hero h1 { font-size: 2rem; }
   .hero p { font-size: 1rem; }

@@ -10,7 +10,6 @@ import EnhancedCheckout from "./component/EnhancedCheckout";
 import "./App.css";
 import backgroundImg from './media/background.png';
 
-// Affiliate context
 export const AffiliateContext = createContext({ code: null, setCode: () => {} });
 
 const AffiliateTracker = ({ children }) => {
@@ -34,7 +33,6 @@ const AffiliateTracker = ({ children }) => {
   return <AffiliateContext.Provider value={value}>{children}</AffiliateContext.Provider>;
 };
 
-// Navbar
 const Navbar = () => {
   const location = useLocation();
   const [active, setActive] = useState(location.pathname);
@@ -46,18 +44,16 @@ const Navbar = () => {
     { to: "/affiliates", label: "Affiliates" },
   ];
 
-  const handleClick = (path) => setActive(path);
-
   return (
     <nav className="nav">
-      <Link to="/" className="logo">Snowstrom</Link>
+      <Link to="/" className="logo">SnowZorgath</Link>
       <div className="nav-links">
         {links.map(link => (
           <Link
             key={link.to}
             to={link.to}
             className={active === link.to ? "active" : ""}
-            onClick={() => handleClick(link.to)}
+            onClick={() => setActive(link.to)}
           >
             {link.label}
           </Link>
@@ -67,21 +63,18 @@ const Navbar = () => {
   );
 };
 
-// Footer
 const Footer = () => (
   <footer className="footer">
-    <p>© {new Date().getFullYear()} Snowstrom. All rights reserved.</p>
+    <p>© {new Date().getFullYear()} SnowZorgath. All rights reserved.</p>
   </footer>
 );
 
-// Checkout Wrapper
 const CheckoutWrapper = () => {
   const { ebookId } = useParams();
   const parsedId = Number(ebookId) || 0;
   return <EnhancedCheckout ebookId={parsedId} amount={500} />;
 };
 
-// Main App
 export default function App() {
   const [ebooks, setEbooks] = useState([]);
   const [upcoming, setUpcoming] = useState([]);
@@ -92,8 +85,9 @@ export default function App() {
     try {
       setLoading(true);
       setErr("");
-      setEbooks([{ id: 1, title: "Sample Ebook", author: "Author", description: "A great ebook." }]);
-      setUpcoming([{ id: 2, title: "Upcoming Ebook", author: "Author", description: "Coming soon!" }]);
+      // fetch from backend/Supabase
+      setEbooks([{ id: 1, title: "Mastering React", description: "Level up your React skills", price: 299, cover: "/covers/react.png" }]);
+      setUpcoming([{ id: 2, title: "Next JS Secrets", description: "Coming soon!", price: 0, cover: "/covers/next.png" }]);
     } catch (e) {
       setErr("Failed to load content");
       console.error(e);
@@ -118,10 +112,10 @@ export default function App() {
           <main className="container">
             <Routes>
               <Route path="/" element={<Home ebooks={ebooks} upcoming={upcoming} />} />
-              <Route path="/ebooks" element={Ebooks ? <Ebooks ebooks={ebooks} /> : <div>Loading...</div>} />
-              <Route path="/upcoming" element={Upcoming ? <Upcoming upcoming={upcoming} /> : <div>Loading...</div>} />
-              <Route path="/feedback" element={Feedback ? <Feedback /> : <div>Loading...</div>} />
-              <Route path="/affiliates" element={AffiliateDashboard ? <AffiliateDashboard /> : <div>Loading...</div>} />
+              <Route path="/ebooks" element={<Ebooks ebooks={ebooks} />} />
+              <Route path="/upcoming" element={<Upcoming upcoming={upcoming} />} />
+              <Route path="/feedback" element={<Feedback />} />
+              <Route path="/affiliates" element={<AffiliateDashboard />} />
               <Route path="/checkout/:ebookId" element={<CheckoutWrapper />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

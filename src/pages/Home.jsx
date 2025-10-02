@@ -70,7 +70,7 @@ const Home = () => {
     }
 
     try {
-      // 1️⃣ Register
+      // Register
       const registerRes = await fetch(`${BACKEND_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -85,7 +85,7 @@ const Home = () => {
         return;
       }
 
-      // 2️⃣ Login (new or existing user)
+      // Login
       const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -120,12 +120,12 @@ const Home = () => {
         <video autoPlay loop muted playsInline className="hero-bg-video" src={bgv} />
         <div className="hero-overlay">
           <h1 className="hero">Welcome to Snowstorm Shop</h1>
-          <p style={{ fontSize: "1.25rem", marginBottom: "2rem" }}>
+          <p style={{ fontSize: "1.25rem", marginBottom: "2rem", color: "#ddd" }}>
             Claim your free PDF and explore powerful eBooks curated for champions.
           </p>
 
           {!registered ? (
-            <form onSubmit={handleRegister} className="register-form" noValidate>
+            <form onSubmit={handleRegister} className="register-form glass-card" noValidate>
               {errors.general && <div className="general-error">{errors.general}</div>}
               <input
                 type="text"
@@ -158,7 +158,7 @@ const Home = () => {
               </button>
             </form>
           ) : (
-            <div className="thank-you">
+            <div className="thank-you glass-card">
               <h2>⚔️ Welcome, Warrior!</h2>
               <p>Your free PDF is on its way! Explore our collection:</p>
               <div className="nav-links" style={{ justifyContent: "center", marginTop: "1.5rem" }}>
@@ -177,8 +177,8 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Optional Premium Banner Section */}
-      <div className="banner info" style={{ maxWidth: "900px", margin: "2rem auto" }}>
+      {/* Premium Banner Section */}
+      <div className="banner info glass-card" style={{ maxWidth: "900px", margin: "2rem auto" }}>
         🌟 Pro Tip: Unlock exclusive eBooks by registering now. Limited-time offers available!
       </div>
     </div>
