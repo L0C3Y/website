@@ -125,12 +125,11 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 
 .hero-video-bg {
   position: relative;
-  width: 90%;          /* not full width */
-  max-width: 900px;    /* maximum width */
-  height: 500px;       /* limited height */
-  margin: 2rem auto;   /* center horizontally */
+  width: 100%;
+  height: 90vh;
   overflow: hidden;
   border-radius: var(--radius);
+  margin-bottom: 2rem;
   background: url('./media/fallback.jpg') center/cover no-repeat;
 }
 
@@ -144,7 +143,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   min-height: 100%;
   object-fit: cover;
   transform: translate(-50%, -50%);
-  z-index: 0;
+  z-index: 0; /* behind overlay */
   pointer-events: none;
 }
 
@@ -161,7 +160,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: rgba(255,255,255,0.1); /* glassy */
+  background: rgba(255,255,255,0.1);
   backdrop-filter: blur(15px);
   border-radius: var(--radius);
   padding: 2rem;
