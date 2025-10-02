@@ -4,14 +4,13 @@ import { useNavigate } from "react-router-dom";
 import bgv from "../media/bgv.mp4";
 import "../styles/app.css";
 
-const BACKEND_URL = import.meta.env.VITE_API_URL;
+const BACKEND_URL = import.meta.env.VITE_API_URL; // Ensure ends with "/"
 
 const Home = () => {
   const navigate = useNavigate();
   const [registered, setRegistered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [showLogin, setShowLogin] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -38,11 +37,10 @@ const Home = () => {
 
   const validateForm = (data) => {
     const newErrors = {};
-    if (!data.name.trim() && !showLogin) newErrors.name = "Name is required";
+    if (!data.name.trim()) newErrors.name = "Name is required";
     if (!data.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(data.email)) newErrors.email = "Enter a valid email";
     if (data.phone && !/^\+?[\d\s\-\(\)]+$/.test(data.phone)) newErrors.phone = "Enter a valid phone number";
-    if (!data.password.trim()) newErrors.password = "Password is required";
     return newErrors;
   };
 
@@ -72,12 +70,13 @@ const Home = () => {
     }
 
     try {
-      // Register
+      // 1️⃣ Register
       const registerRes = await fetch(`${BACKEND_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+
       const registerResult = await registerRes.json();
 
       if (!registerResult.success && !registerResult.error?.toLowerCase().includes("already registered")) {
@@ -86,25 +85,14 @@ const Home = () => {
         return;
       }
 
-      // Auto-login after register
-      await handleLoginInternal(data.email, data.password);
-    } catch (err) {
-      console.error(err);
-      setErrors({ general: "Server error. Try again." });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLoginInternal = async (email, password) => {
-    try {
+      // 2️⃣ Login (new or existing user)
       const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           role: "user",
-          identifier: email,
-          password: password,
+          identifier: data.email,
+          password: data.password,
         }),
       });
 
@@ -121,21 +109,9 @@ const Home = () => {
     } catch (err) {
       console.error(err);
       setErrors({ general: "Server error. Try again." });
-    }
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrors({});
-    const validationErrors = validateForm(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+    } finally {
       setLoading(false);
-      return;
     }
-    await handleLoginInternal(formData.email, formData.password);
-    setLoading(false);
   };
 
   return (
@@ -143,111 +119,66 @@ const Home = () => {
       <div className="hero-video-bg">
         <video autoPlay loop muted playsInline className="hero-bg-video" src={bgv} />
         <div className="hero-overlay">
-          <div className="hero-content glass-card">
-            <h1 className="hero">Welcome to Snowstorm Shop</h1>
-            <p className="hero-subtext">
-              Claim your free PDF and explore powerful eBooks curated for champions.
-            </p>
+          <h1 className="hero">Welcome to Snowstorm Shop</h1>
+          <p style={{ fontSize: "1.25rem", marginBottom: "2rem" }}>
+            Claim your free PDF and explore powerful eBooks curated for champions.
+          </p>
 
-            {!registered && (
-              <>
-                {/* Toggle buttons */}
-                <div className="form-toggle">
-                  <button className={`toggle-btn ${!showLogin ? "active" : ""}`} onClick={() => setShowLogin(false)}>
-                    Register
-                  </button>
-                  <button className={`toggle-btn ${showLogin ? "active" : ""}`} onClick={() => setShowLogin(true)}>
-                    Login
-                  </button>
-                </div>
-
-                {showLogin ? (
-                  <form onSubmit={handleLogin} className="login-form">
-                    {errors.general && <div className="general-error">{errors.general}</div>}
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="Your Email"
-                      className="input-field"
-                      required
-                    />
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Password"
-                      className="input-field"
-                      required
-                    />
-                    <button type="submit" className="hero-btn" disabled={loading}>
-                      {loading ? "Logging in..." : "Login"}
-                    </button>
-                  </form>
-                ) : (
-                  <form onSubmit={handleRegister} className="register-form">
-                    {errors.general && <div className="general-error">{errors.general}</div>}
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder="Your Name"
-                      className="input-field"
-                      required
-                    />
-                    {errors.name && <div className="error-message">{errors.name}</div>}
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="Your Email"
-                      className="input-field"
-                      required
-                    />
-                    {errors.email && <div className="error-message">{errors.email}</div>}
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="Phone (optional)"
-                      className="input-field"
-                    />
-                    {errors.phone && <div className="error-message">{errors.phone}</div>}
-                    <button type="submit" className="hero-btn" disabled={loading}>
-                      {loading ? "Processing..." : "Get Free PDF"}
-                    </button>
-                  </form>
-                )}
-              </>
-            )}
-
-            {registered && (
-              <div className="thank-you">
-                <h2>⚔️ Welcome, Warrior!</h2>
-                <p>Your free PDF is on its way! Explore our collection:</p>
-                <div className="nav-links" style={{ justifyContent: "center", marginTop: "1.5rem" }}>
-                  <button className="hero-btn" onClick={() => navigate("/ebooks")}>
-                    View eBooks
-                  </button>
-                  <button className="hero-btn" onClick={() => navigate("/upcoming")}>
-                    Upcoming Titles
-                  </button>
-                  <button className="hero-btn" onClick={() => navigate("/feedback")}>
-                    Give Feedback
-                  </button>
-                </div>
+          {!registered ? (
+            <form onSubmit={handleRegister} className="register-form" noValidate>
+              {errors.general && <div className="general-error">{errors.general}</div>}
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Your Name"
+                required
+              />
+              {errors.name && <div className="error-message">{errors.name}</div>}
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Your Email"
+                required
+              />
+              {errors.email && <div className="error-message">{errors.email}</div>}
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="Phone (optional)"
+              />
+              {errors.phone && <div className="error-message">{errors.phone}</div>}
+              <button type="submit" className="hero-btn" disabled={loading}>
+                {loading ? "Processing..." : "Get Free PDF"}
+              </button>
+            </form>
+          ) : (
+            <div className="thank-you">
+              <h2>⚔️ Welcome, Warrior!</h2>
+              <p>Your free PDF is on its way! Explore our collection:</p>
+              <div className="nav-links" style={{ justifyContent: "center", marginTop: "1.5rem" }}>
+                <button className="hero-btn" onClick={() => navigate("/ebooks")}>
+                  View eBooks
+                </button>
+                <button className="hero-btn" onClick={() => navigate("/upcoming")}>
+                  Upcoming Titles
+                </button>
+                <button className="hero-btn" onClick={() => navigate("/feedback")}>
+                  Give Feedback
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="premium-banner">
+      {/* Optional Premium Banner Section */}
+      <div className="banner info" style={{ maxWidth: "900px", margin: "2rem auto" }}>
         🌟 Pro Tip: Unlock exclusive eBooks by registering now. Limited-time offers available!
       </div>
     </div>
