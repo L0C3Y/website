@@ -1,7 +1,7 @@
 // src/pages/Ebooks.jsx
 import React, { useEffect, useState } from "react";
 import EnhancedCheckout from "../component/EnhancedCheckout.jsx";
-import "../app.css";
+import "../App.css";
 import rpCover from "../media/ebook1.webp";
 import wdCover from "../media/ebook2.webp";
 
