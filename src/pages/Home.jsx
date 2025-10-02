@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import bgv from "../media/bgv.mp4"; // Ensure this path is correct
+import fallbackImg from "../media/fallback.jpg"; // Import fallback image
 import "../styles/app.css";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL; // Ensure ends with "/"
@@ -122,13 +123,7 @@ const Home = () => {
           background: `url(${fallbackImg}) center/cover no-repeat`,
         }}
       >
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="hero-bg-video"
-        >
+        <video autoPlay loop muted playsInline className="hero-bg-video">
           <source src={bgv} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
@@ -197,7 +192,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Optional Premium Banner Section */}
       <div className="premium-banner">
         🌟 Pro Tip: Unlock exclusive eBooks by registering now. Limited-time offers available!
       </div>
