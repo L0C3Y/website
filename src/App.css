@@ -26,7 +26,10 @@ body, html, #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: url('../media/background.png') no-repeat center center fixed; /* add this */
+  background-size: cover; /* add this */
 }
+
 
 .nav {
   width: 100vw;
