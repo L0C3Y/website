@@ -99,9 +99,9 @@ body, html, #root {
 .footer {
   text-align: center;
   padding: 2rem 0 1rem 0;
-  background: #fff;
+  background: transparent;
   border-top: 1px solid var(--border);
-  color: #64748b;
+  color: #c8c8c8;
   font-size: 1rem;
   margin-top: 2rem;
 }
