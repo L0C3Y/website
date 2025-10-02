@@ -50,42 +50,53 @@ const AffiliateTracker = ({ children }) => {
   return <AffiliateContext.Provider value={value}>{children}</AffiliateContext.Provider>;
 };
 
-// ---- Navbar & Footer ----
+// ---- Navbar ----
 const Navbar = () => {
   const location = useLocation();
-  const [activeLink, setActiveLink] = useState(location.pathname);
+  const [active, setActive] = useState(location.pathname);
 
-  const handleClick = (e, path) => {
-    const target = e.currentTarget;
-    const circle = document.createElement("span");
-    circle.className = "ripple";
-    const rect = target.getBoundingClientRect();
+  const handleClick = (path, e) => {
+    setActive(path);
+
+    // Ripple effect
+    const ripple = e.currentTarget.querySelector(".ripple");
+    const rect = e.currentTarget.getBoundingClientRect();
     const size = Math.max(rect.width, rect.height);
-    circle.style.width = circle.style.height = size + "px";
-    circle.style.left = e.clientX - rect.left - size / 2 + "px";
-    circle.style.top = e.clientY - rect.top - size / 2 + "px";
-    target.appendChild(circle);
-    setActiveLink(path);
-    setTimeout(() => circle.remove(), 600);
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    ripple.classList.remove("animate");
+    void ripple.offsetWidth; // trigger reflow
+    ripple.classList.add("animate");
   };
+
+  const links = [
+    { to: "/ebooks", label: "Ebooks" },
+    { to: "/upcoming", label: "Upcoming" },
+    { to: "/feedback", label: "Feedback" },
+    { to: "/affiliates", label: "Affiliates" },
+  ];
 
   return (
     <nav className="nav">
-      <Link to="/" className="logo">Snowstrom</Link>
+      <Link to="/" className="logo nav-item">
+        Snowstrom
+        <span className="logo-underline"></span>
+      </Link>
       <div className="nav-links">
-        {[
-          { name: "Ebooks", path: "/ebooks" },
-          { name: "Upcoming", path: "/upcoming" },
-          { name: "Feedback", path: "/feedback" },
-          { name: "Affiliates", path: "/affiliates" },
-        ].map((link) => (
+        {links.map((link) => (
           <Link
-            key={link.path}
-            to={link.path}
-            className={activeLink === link.path ? "active clicked" : ""}
-            onClick={(e) => handleClick(e, link.path)}
+            key={link.to}
+            to={link.to}
+            className={`nav-item ${active === link.to ? "active" : ""}`}
+            onClick={(e) => handleClick(link.to, e)}
           >
-            {link.name}
+            {link.label}
+            <span className="hover-underline"></span>
+            <span className="ripple"></span>
           </Link>
         ))}
       </div>
@@ -93,6 +104,7 @@ const Navbar = () => {
   );
 };
 
+// ---- Footer ----
 const Footer = () => (
   <footer className="footer">
     <p>© {new Date().getFullYear()} Snowstrom. All rights reserved.</p>
@@ -117,8 +129,12 @@ export default function App() {
     try {
       setLoading(true);
       setErr("");
-      setEbooks([{ id: 1, title: "Sample Ebook", author: "Author", description: "A great ebook." }]);
-      setUpcoming([{ id: 2, title: "Upcoming Ebook", author: "Author", description: "Coming soon!" }]);
+      setEbooks([
+        { id: 1, title: "Sample Ebook", author: "Author", description: "A great ebook." },
+      ]);
+      setUpcoming([
+        { id: 2, title: "Upcoming Ebook", author: "Author", description: "Coming soon!" },
+      ]);
     } catch (e) {
       setErr("Failed to load content");
       console.error(e);
@@ -143,7 +159,11 @@ export default function App() {
           }}
         >
           <Navbar />
-          {err && <div className="banner error"><strong>Error:</strong> {err}</div>}
+          {err && (
+            <div className="banner error">
+              <strong>Error:</strong> {err}
+            </div>
+          )}
           {loading && <div className="banner info">Loading…</div>}
           <main className="container">
             <Routes>
