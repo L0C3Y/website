@@ -41,7 +41,6 @@ body, html, #root {
   background: transparent;
   border-bottom: 1px solid var(--border);
   padding: 1rem 2rem;
-  box-shadow: var(--shadow);
   position: sticky;
   top: 0;
   z-index: 10;
