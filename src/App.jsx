@@ -138,7 +138,8 @@ export default function App() {
           <Navbar />
           {err && <div className="banner error"><strong>Error:</strong> {err}</div>}
           {loading && <div className="banner info">Loading…</div>}
-          <main className="container">
+          {/* Added top padding to prevent navbar covering content */}
+          <main className="container" style={{ paddingTop: '80px' }}>
             <Routes>
               <Route path="/" element={<Home ebooks={ebooks} upcoming={upcoming} />} />
               <Route path="/ebooks" element={<Ebooks ebooks={ebooks} />} />

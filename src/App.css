@@ -65,7 +65,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   align-items: center;
   padding: 1.25rem clamp(1.5rem, 5vw, 3rem);
 
-  background: rgba(15, 15, 15, 0.6); /* initial blur */
+  background: rgba(15, 15, 15, 0.6);
   backdrop-filter: blur(18px) saturate(150%);
   -webkit-backdrop-filter: blur(18px) saturate(150%);
 
@@ -73,11 +73,14 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   z-index: 2000;
   transition: all 0.3s ease;
+
+  /* Ensure navbar stays above all content */
+  overflow-x: auto; /* horizontal scroll if needed for small screens */
 }
 
 /* Scroll active state */
 .nav.scrolled {
-  background: rgba(0, 0, 0, 0.85); /* darker blur */
+  background: rgba(0, 0, 0, 0.85);
   box-shadow: 0 4px 30px rgba(0,0,0,0.6);
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
@@ -95,6 +98,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   letter-spacing: -0.5px;
   transition: transform 0.3s ease;
   padding-bottom: 6px; /* space for underline */
+  flex-shrink: 0; /* prevent logo shrinking */
 }
 
 .nav .logo:hover,
@@ -127,13 +131,14 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 /* Links */
 .nav-links {
   display: flex;
-  gap: 2.5rem;
+  gap: 2rem;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex-wrap: nowrap; /* prevent wrapping to new line */
   margin: 0;
   padding: 0;
   list-style: none;
+  flex-shrink: 0; /* prevent shrinking */
 }
 
 .nav-links a {
@@ -146,6 +151,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   letter-spacing: 0.3px;
   padding: 0.5rem 0;
   display: inline-block;
+  white-space: nowrap; /* prevent text wrapping */
 }
 
 .nav-links a:hover,
@@ -192,6 +198,15 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 /* Active link text */
 .nav-links a.active {
   color: #fff;
+}
+
+/* Responsive: horizontal scroll on small screens */
+@media (max-width: 768px) {
+  .nav-links {
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 2px; /* add small padding to avoid scrollbar overlap */
+  }
 }
 
 /* ============================= */
