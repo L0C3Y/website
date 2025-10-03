@@ -130,7 +130,7 @@ const Home = () => {
           <div className="hero-content">
             <h1 className="hero">Welcome to Snowstorm Shop</h1>
             <p style={{ fontSize: "1.25rem", marginBottom: "2rem" }}>
-              Forget the days spend make your future a brand
+              Forget the days spend make your future a brand.
             </p>
 
             {!registered ? (
