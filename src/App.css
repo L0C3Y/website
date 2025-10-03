@@ -63,7 +63,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem clamp(1.5rem, 5vw, 3rem);
+  padding: 1.25rem clamp(1.5rem, 5vw, 2rem);
 
   background: rgba(15, 15, 15, 0.6);
   backdrop-filter: blur(18px) saturate(150%);
