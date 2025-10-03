@@ -675,18 +675,8 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 }
 
 /* ============================= */
-/* Sticky Footer (Professional) */
+/* Footer at the bottom of page content */
 /* ============================= */
-.app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh; /* full viewport height */
-}
-
-main.container {
-  flex: 1; /* push footer to bottom when content is short */
-}
-
 .footer {
   background: rgba(15, 15, 15, 0.85);
   color: #fff;
@@ -695,3 +685,4 @@ main.container {
   border-top: 1px solid rgba(255,255,255,0.1);
   font-size: 0.95rem;
 }
+
