@@ -89,21 +89,6 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transform: scale(1.05);
 }
 
-.nav .logo::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  background: var(--gradient);
-  filter: blur(15px);
-  opacity: 0;
-  z-index: -1;
-  transition: opacity 0.3s ease;
-}
-
-.nav .logo:hover::before {
-  opacity: 0.6;
-}
-
 /* Links */
 .nav-links {
   display: flex;
