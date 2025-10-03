@@ -63,7 +63,9 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem clamp(1.5rem, 5vw, 2rem);
+  padding: 1.25rem clamp(1.5rem, 5vw, 3rem);
+  max-width: 100vw;
+  box-sizing: border-box;
 
   background: rgba(15, 15, 15, 0.6);
   backdrop-filter: blur(18px) saturate(150%);
@@ -131,7 +133,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 /* Links */
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: clamp(1rem, 2.5vw, 2rem);
   align-items: center;
   justify-content: flex-end;
   flex-wrap: nowrap; /* prevent wrapping to new line */
