@@ -182,6 +182,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 .nav-links a.active {
   color: #fff;
 }
+
 /* ============================= */
 /* Hero Section + Video Background + Glass Login */
 /* ============================= */
@@ -521,7 +522,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 2000; /* fixed */
   animation: fadeInScale 0.3s ease-out;
 }
 
@@ -580,16 +581,27 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 /* Responsive Media Queries */
 /* ============================= */
 @media (max-width: 768px) {
+  .nav { padding: 1rem 1.5rem; } /* fix navbar padding */
   .hero { font-size: 1.8rem; }
   .poster-row, .premium-grid, .ebooks-grid { gap: 1rem; }
   .poster { max-width: 140px; }
   .hero-btn { margin-bottom: 30px; }
+  .hero-overlay { max-width: 90%; } /* prevent overflow */
 }
 
 @media (max-width: 480px) {
+  .nav { padding: 0.8rem 1rem; }
   .hero { font-size: 1.5rem; }
-  .register-form, .feedback-form { max-width: 280px; padding: 1rem; }
-  .hero-overlay { padding: 2rem 1rem; }
+  .register-form, .feedback-form { 
+    max-width: 280px; 
+    padding: 1rem; 
+    border-radius: 12px; /* smaller radius */
+  }
+  .hero-overlay { 
+    padding: 2rem 1rem; 
+    max-width: 90%; /* tighter on phones */
+  }
+  .poster { max-width: 100px; }
   .hero-btn { margin-bottom: 10px; }
 }
 
@@ -607,22 +619,29 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 }
 
 /* ============================= */
-/* Reduced motion */
+/* Reduced motion preference */
+/* ============================= */
 @media (prefers-reduced-motion: reduce) {
-  * { animation-duration: 0s !important; transition-duration: 0s !important; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ============================= */
-/* Print styles */
+/* Print Styles */
+/* ============================= */
 @media print {
-  body { background: #fff; color: #000; }
-  .hero-video-bg, .poster-row, .premium-section, .feedback-page { display: none; }
-}
-
-/* ============================= */
-.error-message {
-  color: #f12e2e;
-  font-size: 0.9rem;
-  margin-top: -0.5rem;
-  text-align: left;
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .nav, .hero-video-bg, .poster-row, .premium-section {
+    display: none !important;
+  }
+  .ebooks-grid {
+    display: block !important;
+  }
 }
