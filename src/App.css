@@ -71,6 +71,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Logo */
 .nav .logo {
   font-weight: 900;
   font-size: 2.2rem;
@@ -103,6 +104,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   opacity: 0.6;
 }
 
+/* Links */
 .nav-links {
   display: flex;
   gap: 2.5rem;
@@ -133,6 +135,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transform: translateY(-1px);
 }
 
+/* Underline + Glow */
 .nav-links a::after {
   content: "";
   position: absolute;
@@ -140,20 +143,40 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   bottom: -2px;
   width: 0;
   height: 2px;
-  background: var(--gradient);
+  background: var(--primary); /* glowing color */
   border-radius: 2px;
   transform: translateX(-50%);
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 8px rgba(var(--primary), 0.5);
-  shadow: none;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.3s ease-in-out;
+  opacity: 0.9;
 }
 
 .nav-links a:hover::after,
 .nav-links a.active::after {
   width: 100%;
-  shadow: var(--hover-glow);
+  box-shadow: 
+    0 0 6px var(--primary),
+    0 0 12px var(--primary),
+    0 0 24px var(--primary);
 }
 
+/* Optional pulsing neon effect */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 6px var(--primary), 0 0 12px var(--primary);
+  }
+  50% {
+    box-shadow: 0 0 12px var(--primary), 0 0 24px var(--primary);
+  }
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+  width: 100%;
+  animation: pulse-glow 1.5s infinite alternate;
+}
+
+/* Active link text */
 .nav-links a.active {
   color: #fff;
 }
