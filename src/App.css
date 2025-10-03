@@ -53,21 +53,27 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 }
 
 /* ============================= */
-/* Navbar (Premium + Glowing) */
+/* Navbar (Premium + Glowing + Glass) */
 /* ============================= */
 .nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 3rem;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  
+  /* Premium glass effect */
+  background: rgba(255, 255, 255, 0.05); /* subtle transparent glass */
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid var(--border);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+
+  /* depth and subtle border */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+  
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -84,6 +90,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   letter-spacing: -0.5px;
   transition: transform 0.3s ease;
   padding-bottom: 6px; /* space for underline */
+  z-index: 2;
 }
 
 .nav .logo:hover,
@@ -91,6 +98,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transform: scale(1.05);
 }
 
+/* Animated glowing underline for logo on hover/click */
 .nav .logo::after {
   content: "";
   position: absolute;
@@ -113,7 +121,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
     0 0 24px var(--primary);
 }
 
-/* Links */
+/* Nav links */
 .nav-links {
   display: flex;
   gap: 2.5rem;
@@ -123,6 +131,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   margin: 0;
   padding: 0;
   list-style: none;
+  z-index: 2;
 }
 
 .nav-links a {
@@ -137,6 +146,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   display: inline-block;
 }
 
+/* Link hover & active */
 .nav-links a:hover,
 .nav-links a.active {
   color: #fff;
@@ -169,6 +179,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   animation: link-glow 1.5s infinite alternate;
 }
 
+/* Link glow animation */
 @keyframes link-glow {
   0% {
     box-shadow: 0 0 6px var(--primary), 0 0 12px var(--primary);
@@ -181,6 +192,12 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 /* Active link text */
 .nav-links a.active {
   color: #fff;
+}
+
+/* Optional: navbar glass effect intensifies on scroll */
+.nav.scrolled {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(30px) saturate(200%);
 }
 
 /* ============================= */
