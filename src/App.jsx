@@ -138,8 +138,9 @@ export default function App() {
           <Navbar />
           {err && <div className="banner error"><strong>Error:</strong> {err}</div>}
           {loading && <div className="banner info">Loading…</div>}
-          {/* Added top padding to prevent navbar covering content */}
-          <main className="container" style={{ paddingTop: '80px' }}>
+
+          {/* Main content fills remaining space */}
+          <main className="container" style={{ flex: 1, paddingTop: '80px' }}>
             <Routes>
               <Route path="/" element={<Home ebooks={ebooks} upcoming={upcoming} />} />
               <Route path="/ebooks" element={<Ebooks ebooks={ebooks} />} />
@@ -150,6 +151,8 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
+
+          {/* Footer stays at bottom of content */}
           <Footer />
         </div>
       </AffiliateTracker>
