@@ -166,13 +166,13 @@ const Home = () => {
                 />
                 {errors.phone && <div className="error-message">{errors.phone}</div>}
                 <button type="submit" className="hero-btn" disabled={loading}>
-                  {loading ? "Processing..." : "Get Free PDF"}
+                  {loading ? "Processing..." : "Apply Now"}
                 </button>
               </form>
             ) : (
               <div className="thank-you">
                 <h2>⚔️ Welcome, Warrior!</h2>
-                <p>Your free PDF is on its way! Explore our collection:</p>
+                <p>Your guidebook is on its way! Explore our collection:</p>
                 <div className="nav-links" style={{ justifyContent: "center", marginTop: "1.5rem" }}>
                   <button className="hero-btn" onClick={() => navigate("/ebooks")}>
                     View eBooks

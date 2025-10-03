@@ -205,6 +205,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   color: #fff;
   font-weight: 700;
   cursor: pointer;
+  backdrop-filter: blur(15px);
   transition: all 0.3s;
 }
 
