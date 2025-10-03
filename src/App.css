@@ -673,3 +673,25 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
     display: block !important;
   }
 }
+
+/* ============================= */
+/* Sticky Footer (Professional) */
+/* ============================= */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* full viewport height */
+}
+
+main.container {
+  flex: 1; /* push footer to bottom when content is short */
+}
+
+.footer {
+  background: rgba(15, 15, 15, 0.85);
+  color: #fff;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.95rem;
+}
