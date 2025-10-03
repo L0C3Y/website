@@ -89,6 +89,22 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transform: scale(1.05);
 }
 
+.nav .logo::before {
+  content: '';
+  position: absolute;
+  background: var(--gradient);
+  width: 0;  
+  height: 2px;
+  opacity: 1;
+  bottom: 0;
+  left: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+.nav .logo:hover::before {
+  width: 100%;
+}
+
 /* Links */
 .nav-links {
   display: flex;
