@@ -134,28 +134,31 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   gap: 2rem;
   align-items: center;
   justify-content: flex-end;
-  flex-wrap: nowrap; /* keep links in a single row */
+  flex-wrap: nowrap; /* prevent wrapping to new line */
   margin: 0;
   padding: 0;
   list-style: none;
-  
-  /* Key fix: make links scrollable horizontally if they overflow */
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch; /* smooth scroll for mobile */
-}
-
-.nav-links::-webkit-scrollbar {
-  height: 5px; /* hide or style scrollbar */
-}
-
-.nav-links::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
+  flex-shrink: 0; /* prevent shrinking */
 }
 
 .nav-links a {
-  flex-shrink: 0; /* prevent links from shrinking */
-  white-space: nowrap; /* prevent wrapping */
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-light);
+  text-decoration: none;
+  position: relative;
+  transition: color 0.3s ease, text-shadow 0.3s ease, transform 0.2s ease;
+  letter-spacing: 0.3px;
+  padding: 0.5rem 0;
+  display: inline-block;
+  white-space: nowrap; /* prevent text wrapping */
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: #fff;
+  text-shadow: var(--hover-glow);
+  transform: translateY(-1px);
 }
 
 /* Glowing underline for links */
