@@ -131,15 +131,17 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 /* Links */
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: clamp(1rem, 2vw, 2.5rem); /* flexible spacing */
   align-items: center;
-  justify-content: flex-end;
-  flex-wrap: nowrap; /* prevent wrapping to new line */
+  justify-content: flex-end; /* aligns to right */
+  flex-wrap: wrap; /* allows wrapping if needed */
+  max-width: calc(100% - 250px); /* leaves space for logo + padding */
   margin: 0;
   padding: 0;
   list-style: none;
-  flex-shrink: 0; /* prevent shrinking */
+  overflow: hidden; /* prevent overflow */
 }
+
 
 .nav-links a {
   font-weight: 600;
