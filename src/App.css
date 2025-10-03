@@ -71,7 +71,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Logo with glowing underline */
+/* Logo with hover underline */
 .nav .logo {
   font-weight: 900;
   font-size: 2.2rem;
@@ -90,31 +90,27 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transform: scale(1.05);
 }
 
-/* Animated glowing underline under logo */
+/* Animated glowing underline (appears only on hover/click) */
 .nav .logo::after {
   content: "";
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 100%;
+  width: 0;
   height: 3px;
   background: var(--gradient);
   border-radius: 3px;
+  transition: width 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+  opacity: 0.9;
+}
+
+.nav .logo:hover::after,
+.nav .logo:active::after {
+  width: 100%;
   box-shadow: 
     0 0 6px var(--primary),
     0 0 12px var(--primary),
     0 0 24px var(--primary);
-  animation: logo-glow 2.5s infinite alternate;
-}
-
-/* Logo underline glow pulse */
-@keyframes logo-glow {
-  0% {
-    box-shadow: 0 0 4px var(--primary), 0 0 8px var(--primary);
-  }
-  100% {
-    box-shadow: 0 0 12px var(--primary), 0 0 24px var(--primary), 0 0 36px var(--primary);
-  }
 }
 
 /* Links */
