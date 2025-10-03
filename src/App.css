@@ -97,8 +97,8 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   height: 2px;
   opacity: 1;
   bottom: 0;
-  left: 0;
-  transition: opacity 0.3s ease-in;
+  left: -50%;
+  transition: opacity 0.5s ease-in;
 }
 
 .nav .logo:hover::before {
