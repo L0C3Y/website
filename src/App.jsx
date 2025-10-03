@@ -36,6 +36,7 @@ const AffiliateTracker = ({ children }) => {
 const Navbar = () => {
   const location = useLocation();
   const [active, setActive] = useState(location.pathname);
+  const [logoActive, setLogoActive] = useState(false);
 
   const links = [
     { to: "/ebooks", label: "Ebooks" },
@@ -44,16 +45,33 @@ const Navbar = () => {
     { to: "/affiliates", label: "Affiliates" },
   ];
 
+  // Reset logo active if any link is clicked
+  const handleLinkClick = (linkTo) => {
+    setActive(linkTo);
+    setLogoActive(false);
+  };
+
+  // Activate logo
+  const handleLogoClick = () => {
+    setActive(""); // remove active from all links
+    setLogoActive(true);
+  };
+
   return (
     <nav className="nav">
-      <Link to="/" className="logo">Snowstrom</Link>
+      <div
+        className={`logo ${logoActive ? "active-logo" : ""}`}
+        onClick={handleLogoClick}
+      >
+        Snowstrom
+      </div>
       <div className="nav-links">
         {links.map(link => (
           <Link
             key={link.to}
             to={link.to}
             className={active === link.to ? "active" : ""}
-            onClick={() => setActive(link.to)}
+            onClick={() => handleLinkClick(link.to)}
           >
             {link.label}
           </Link>
