@@ -205,7 +205,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   color: #fff;
   font-weight: 700;
   cursor: pointer;
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(60px);
   transition: all 0.3s;
 }
 
@@ -546,4 +546,12 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 @media print {
   body { background: #fff; color: #000; }
   .hero-video-bg, .poster-row, .premium-section, .feedback-page { display: none; }
+}
+
+/* ============================= */
+.error-message {
+  color: #f12e2e;
+  font-size: 0.9rem;
+  margin-top: -0.5rem;
+  text-align: left;
 }
