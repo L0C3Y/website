@@ -71,7 +71,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Logo with hover underline */
+/* Logo with hover/click underline */
 .nav .logo {
   font-weight: 900;
   font-size: 2.2rem;
@@ -86,11 +86,11 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   padding-bottom: 6px; /* space for underline */
 }
 
-.nav .logo:hover {
+.nav .logo:hover,
+.nav .logo.active-logo {
   transform: scale(1.05);
 }
 
-/* Animated glowing underline (appears only on hover/click) */
 .nav .logo::after {
   content: "";
   position: absolute;
@@ -105,7 +105,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 }
 
 .nav .logo:hover::after,
-.nav .logo:active::after {
+.nav .logo.active-logo::after {
   width: 100%;
   box-shadow: 
     0 0 6px var(--primary),
