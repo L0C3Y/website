@@ -674,9 +674,8 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   }
 }
 
-/* ============================= */
 /* Footer at the bottom of page content */
-/* ============================= */
+
 .footer {
   background: rgba(15, 15, 15, 0.85);
   color: #fff;
@@ -684,5 +683,15 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   padding: 1.5rem 1rem;
   border-top: 1px solid rgba(255,255,255,0.1);
   font-size: 0.95rem;
+  margin-top: auto; /* ensures footer stays after all content */
 }
 
+/* Ensure app flex container pushes footer to bottom */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* full viewport height */
+}
+main.container {
+  flex: 1; /* makes main take remaining space */
+}
