@@ -37,6 +37,7 @@ const Navbar = () => {
   const location = useLocation();
   const [active, setActive] = useState(location.pathname);
   const [logoActive, setLogoActive] = useState(location.pathname === "/");
+  const [scrolled, setScrolled] = useState(false);
 
   const links = [
     { to: "/ebooks", label: "Ebooks" },
@@ -55,8 +56,19 @@ const Navbar = () => {
     setLogoActive(true);
   };
 
+  // Scroll effect for dark premium navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) setScrolled(true);
+      else setScrolled(false);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <nav className="nav">
+    <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
       <Link
         to="/"
         className={`logo ${logoActive ? "active-logo" : ""}`}
