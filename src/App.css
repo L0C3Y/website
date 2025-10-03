@@ -92,6 +92,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   text-decoration: none;
   position: relative;
   transition: 0.3s;
+  text-shadow: none;
 }
 
 .nav-links a:hover::after,
