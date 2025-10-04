@@ -81,7 +81,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 
 /* Scroll active state */
 .nav.scrolled {
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.45);
   box-shadow: 0 4px 30px rgba(0,0,0,0.6);
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
