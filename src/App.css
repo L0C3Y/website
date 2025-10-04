@@ -347,7 +347,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   border-radius: 12px;
   border: none;
   background: var(--gradient);
-  color: #fff;
+  color: #ba0000;
   font-weight: 700;
   cursor: pointer;
   backdrop-filter: blur(60px);
@@ -396,7 +396,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 .feedback-form input,
 .feedback-form textarea {
   background: rgba(255,255,255,0.05); /* transparent inputs */
-  color: #b00808;
+  color: #fff;
   border: 1.5px solid rgba(255,255,255,0.3);
   border-radius: 12px;
   padding: 0.8rem;
