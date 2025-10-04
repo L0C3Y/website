@@ -255,31 +255,11 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
-  /* Glass + neon glow */
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(25px) saturate(180%) brightness(1.05);
-  -webkit-backdrop-filter: blur(25px) saturate(180%) brightness(1.05);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
   border-radius: var(--radius);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.35),
-              0 0 60px rgba(37, 99, 235,0.15) inset;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
   text-align: center;
-  transition: all 0.4s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-overlay::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, rgba(37,99,235,0.2), rgba(255,0,255,0.1), rgba(0,255,255,0.1));
-  animation: neon-glow 6s linear infinite;
-  pointer-events: none;
 }
 
 .hero-overlay h1 {
