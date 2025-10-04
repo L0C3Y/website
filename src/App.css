@@ -74,8 +74,8 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   z-index: 2000;
   transition: all 0.3s ease;
-   border-bottom-left-radius: 25px;
-  border-bottom-right-radius: 25px;
+   border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
 
   /* Ensure navbar stays above all content */
   overflow-x: auto; /* horizontal scroll if needed for small screens */
