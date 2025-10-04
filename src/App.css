@@ -347,7 +347,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   border-radius: 12px;
   border: none;
   background: var(--gradient);
-  color: #ba0000;
+  color: #fff;
   font-weight: 700;
   cursor: pointer;
   backdrop-filter: blur(60px);
