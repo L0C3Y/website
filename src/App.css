@@ -279,9 +279,20 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 /* Glassy Login Form */
 .glass-login {
   width: 100%;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding: 2rem;
+  border-radius: var(--radius);
+  
+  background: rgba(255, 255, 255, 0.08);  /* translucent glass */
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.05); /* premium glass */
+  border: 1px solid rgba(255, 255, 255, 0.15); /* subtle outline */
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35); /* depth */
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .glass-login input {
