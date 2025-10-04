@@ -396,7 +396,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 .feedback-form input,
 .feedback-form textarea {
   background: rgba(255,255,255,0.05); /* transparent inputs */
-  color: #ffffff00;
+  color: #fff;
   border: 1.5px solid rgba(255,255,255,0.3);
   border-radius: 12px;
   padding: 0.8rem;
