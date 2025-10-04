@@ -74,16 +74,14 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   z-index: 2000;
   transition: all 0.3s ease;
-   border-bottom-left-radius: 20px;
+  border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
 
-  /* Ensure navbar stays above all content */
-  overflow-x: auto; /* horizontal scroll if needed for small screens */
+  overflow-x: auto;
 }
 
-/* Scroll active state */
 .nav.scrolled {
-  background: rgba(20, 20, 20, 0.55); /* lighter translucent dark */
+  background: rgba(20, 20, 20, 0.55);
   backdrop-filter: blur(15px) saturate(160%) brightness(1.05);
   -webkit-backdrop-filter: blur(15px) saturate(160%) brightness(1.05);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -91,7 +89,6 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transition: background 0.35s ease, backdrop-filter 0.35s ease, box-shadow 0.35s ease;
 }
 
-/* Logo with hover/click underline */
 .nav .logo {
   font-weight: 900;
   font-size: 2.2rem;
@@ -103,8 +100,8 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   position: relative;
   letter-spacing: -0.5px;
   transition: transform 0.3s ease;
-  padding-bottom: 6px; /* space for underline */
-  flex-shrink: 0; /* prevent logo shrinking */
+  padding-bottom: 6px;
+  flex-shrink: 0;
 }
 
 .nav .logo:hover,
@@ -134,17 +131,16 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
     0 0 24px var(--primary);
 }
 
-/* Links */
 .nav-links {
   display: flex;
   gap: clamp(1rem, 2.5vw, 2rem);
   align-items: center;
   justify-content: flex-end;
-  flex-wrap: nowrap; /* prevent wrapping to new line */
+  flex-wrap: nowrap;
   margin: 0;
   padding: 0;
   list-style: none;
-  flex-shrink: 0; /* prevent shrinking */
+  flex-shrink: 0;
 }
 
 .nav-links a {
@@ -157,7 +153,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   letter-spacing: 0.3px;
   padding: 0.5rem 0;
   display: inline-block;
-  white-space: nowrap; /* prevent text wrapping */
+  white-space: nowrap;
 }
 
 .nav-links a:hover,
@@ -167,7 +163,6 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transform: translateY(-1px);
 }
 
-/* Glowing underline for links */
 .nav-links a::after {
   content: "";
   position: absolute;
@@ -201,17 +196,15 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   }
 }
 
-/* Active link text */
 .nav-links a.active {
   color: #fff;
 }
 
-/* Responsive: horizontal scroll on small screens */
 @media (max-width: 768px) {
   .nav-links {
     gap: 1rem;
     overflow-x: auto;
-    padding-bottom: 2px; /* add small padding to avoid scrollbar overlap */
+    padding-bottom: 2px;
   }
 }
 
@@ -238,7 +231,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   min-height: 100%;
   object-fit: cover;
   transform: translate(-50%, -50%);
-  z-index: 0; /* behind overlay */
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -255,11 +248,30 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(15px);
+
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(25px) saturate(180%) brightness(1.05);
+  -webkit-backdrop-filter: blur(25px) saturate(180%) brightness(1.05);
   border-radius: var(--radius);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35),
+              0 0 60px rgba(37, 99, 235,0.15) inset;
   text-align: center;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-overlay::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, rgba(37,99,235,0.2), rgba(255,0,255,0.1), rgba(0,255,255,0.1));
+  animation: neon-glow 6s linear infinite;
+  pointer-events: none;
 }
 
 .hero-overlay h1 {
@@ -288,12 +300,10 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   gap: 1rem;
   border-radius: 20px;
 
-  /* Premium Glass */
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(25px) saturate(180%) brightness(1.1);
   -webkit-backdrop-filter: blur(25px) saturate(180%) brightness(1.1);
 
-  /* Neon outline */
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 0 15px rgba(37, 99, 235, 0.2),
               0 12px 40px rgba(0,0,0,0.35),
@@ -304,7 +314,6 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   transition: all 0.4s ease;
 }
 
-/* Glow animation pseudo-element */
 .glass-login::before {
   content: "";
   position: absolute;
@@ -317,13 +326,6 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   pointer-events: none;
 }
 
-@keyframes neon-glow {
-  0% { transform: rotate(0deg) translate(0,0); }
-  50% { transform: rotate(180deg) translate(10px,10px); }
-  100% { transform: rotate(360deg) translate(0,0); }
-}
-
-/* Inputs inside login card */
 .glass-login input {
   padding: 0.8rem;
   border-radius: 12px;
@@ -341,7 +343,6 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
 }
 
-/* Button inside login card */
 .glass-login button {
   padding: 0.8rem;
   border-radius: 12px;
@@ -360,19 +361,18 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
               0 12px 50px rgba(0,0,0,0.7);
 }
 
-
-/* Hero Text */
-.hero {
-  margin-bottom: 2rem;
-  font-size: 2.1rem;
-  font-weight: 700;
-  color:var(--bg-dark);
-  -webkit-background-clip: text;
-  background-clip: text;
-  line-height: 1.2;
-  text-align: center;
+/* ============================= */
+/* Neon Glow Keyframes */
+/* ============================= */
+@keyframes neon-glow {
+  0% { transform: rotate(0deg) translate(0,0); }
+  50% { transform: rotate(180deg) translate(10px,10px); }
+  100% { transform: rotate(360deg) translate(0,0); }
 }
 
+/* ============================= */
+/* Register & Feedback Forms */
+/* ============================= */
 .register-form, .feedback-form {
   display: flex;
   flex-direction: column;
@@ -382,20 +382,35 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   padding: 1.5rem 1rem;
   border-radius: var(--radius);
 
-  /* Transparent Glass Effect */
-  background: rgba(255,255,255,0.05); /* very translucent */
-  backdrop-filter: blur(20px) saturate(180%) brightness(1.05);
-  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.05);
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(25px) saturate(180%) brightness(1.05);
+  -webkit-backdrop-filter: blur(25px) saturate(180%) brightness(1.05);
 
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35),
+              0 0 60px rgba(37, 99, 235,0.15) inset;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.register-form::before,
+.feedback-form::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, rgba(37,99,235,0.2), rgba(255,0,255,0.1), rgba(0,255,255,0.1));
+  animation: neon-glow 6s linear infinite;
+  pointer-events: none;
 }
 
 .register-form input,
 .feedback-form input,
 .feedback-form textarea {
-  background: rgba(255,255,255,0.05); /* transparent inputs */
+  background: rgba(255,255,255,0.05);
   color: #fff;
   border: 1.5px solid rgba(255,255,255,0.3);
   border-radius: 12px;
@@ -412,7 +427,6 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
   outline: none;
 }
-
 
 .register-form input::placeholder {
   color: #9ca3af;
