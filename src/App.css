@@ -415,7 +415,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 
 
 .register-form input::placeholder {
-  color: #9ca3af;
+  color: transparent;
 }
 
 .feedback-form textarea {
