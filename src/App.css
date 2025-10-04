@@ -276,69 +276,88 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   margin-bottom: 1.5rem;
 }
 
-/* Glassy Login Form - Premium Version */
+/* ============================= */
+/* Ultra-Premium Glassy Login Card */
+/* ============================= */
 .glass-login {
   width: 100%;
   max-width: 400px;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 2rem;
-  border-radius: var(--radius);
+  border-radius: 20px;
 
-  background: rgba(255, 255, 255, 0.08); /* translucent glass */
-  backdrop-filter: blur(20px) saturate(180%) brightness(1.05); /* premium glass */
-  border: 1px solid rgba(255, 255, 255, 0.15); /* subtle outline */
-  box-shadow: 0 12px 40px rgba(0,0,0,0.35); /* depth */
+  /* Premium Glass */
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(25px) saturate(180%) brightness(1.1);
+  -webkit-backdrop-filter: blur(25px) saturate(180%) brightness(1.1);
+
+  /* Neon outline */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.2),
+              0 12px 40px rgba(0,0,0,0.35),
+              0 0 60px rgba(37, 99, 235, 0.15) inset;
+
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
 }
 
+/* Glow animation pseudo-element */
 .glass-login::before {
-  content: '';
+  content: "";
   position: absolute;
-  top: -4px; left: -4px; right: -4px; bottom: -4px;
-  border-radius: var(--radius);
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  z-index: -1;
-  filter: blur(25px);
-  opacity: 0.35; /* subtle glow */
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, rgba(37,99,235,0.2), rgba(255,0,255,0.1), rgba(0,255,255,0.1));
+  animation: neon-glow 6s linear infinite;
+  pointer-events: none;
 }
 
+@keyframes neon-glow {
+  0% { transform: rotate(0deg) translate(0,0); }
+  50% { transform: rotate(180deg) translate(10px,10px); }
+  100% { transform: rotate(360deg) translate(0,0); }
+}
+
+/* Inputs inside login card */
 .glass-login input {
   padding: 0.8rem;
-  border-radius: var(--radius);
+  border-radius: 12px;
   border: 1.5px solid rgba(255, 255, 255, 0.3);
   background: rgba(255,255,255,0.05);
   color: #fff;
   font-size: 1rem;
-  backdrop-filter: blur(12px) saturate(150%);
-  transition: all 0.3s;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
 }
 
 .glass-login input:focus {
   border: 1.5px solid var(--primary);
   outline: none;
-  box-shadow: 0 0 15px rgba(37, 99, 235, 0.45);
-  background: rgba(255,255,255,0.08);
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
 }
 
+/* Button inside login card */
 .glass-login button {
   padding: 0.8rem;
-  border-radius: var(--radius);
+  border-radius: 12px;
   border: none;
   background: var(--gradient);
   color: #fff;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-  transition: all 0.3s;
+  backdrop-filter: blur(60px);
+  transition: all 0.3s ease;
 }
 
 .glass-login button:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 12px 50px rgba(0,0,0,0.5);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 15px rgba(37, 99, 235,0.8),
+              0 12px 50px rgba(0,0,0,0.7);
 }
 
 
