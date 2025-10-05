@@ -104,7 +104,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
   letter-spacing: -0.5px;
   transition: transform 0.3s ease;
   padding-bottom: 6px; /* space for underline */
-  margin-right: 30px;
+  margin: 30px;
   flex-shrink: 0; /* prevent logo shrinking */
 }
 
