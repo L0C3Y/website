@@ -149,7 +149,7 @@ body, html, #root, .app, main.container, .container, .home-page, .upcoming-page 
 
 .nav-links a {
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.55rem;
   color: var(--text-light);
   text-decoration: none;
   position: relative;
